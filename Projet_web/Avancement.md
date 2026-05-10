@@ -7,8 +7,6 @@ Ce document résume **tout ce qui est déjà en place** dans le projet Abalone :
 - Front React connecté au back  
 - Lecture du plateau depuis la BDD  
 
-Il sert de base avant de demander à GitHub Copilot de générer la suite du jeu.
-
 ---
 
 # 🗄️ 1. Base de données SQLite

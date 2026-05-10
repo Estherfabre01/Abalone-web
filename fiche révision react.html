@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fiche de révision React - Version Détaillée</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+    h1, h2 { color: #0d6efd; }
+    code { background: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<h1>📘 Fiche de Révision React — Version Détaillée</h1>
+
+<h2>1. Composants</h2>
+<p>Un composant est une fonction qui retourne du JSX.</p>
+
+<pre><code>function Hello() {
+  return &lt;h2&gt;Salut !&lt;/h2&gt;;
+}
+
+function App() {
+  return (
+    &lt;div&gt;
+      &lt;Hello /&gt;
+      &lt;Hello /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+<h2>2. Props</h2>
+<p>Les props permettent de passer des données d’un parent à un enfant.</p>
+
+<pre><code>function UserCard({ name, age }) {
+  return &lt;p&gt;{name} a {age} ans.&lt;/p&gt;;
+}
+
+&lt;UserCard name="Esther" age={22} /&gt;
+</code></pre>
+
+<h2>3. State (useState)</h2>
+<p>Le state permet de gérer des données internes au composant.</p>
+
+<pre><code>function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Compteur : {count}&lt;/p&gt;
+      &lt;button onClick={() => setCount(count + 1)}&gt;+1&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+
+<h2>4. useEffect</h2>
+<p>Permet d’exécuter du code après le rendu (fetch, timers, écouteurs...).</p>
+
+<pre><code>useEffect(() => {
+  console.log("Le composant est monté");
+
+  return () => {
+    console.log("Le composant est démonté");
+  };
+}, []);
+</code></pre>
+
+<h3>Exemple avec API :</h3>
+<pre><code>useEffect(() => {
+  fetch("https://api.example.com/users")
+    .then(res => res.json())
+    .then(data => setUsers(data));
+}, []);
+</code></pre>
+
+<h2>5. useRef</h2>
+<p>Stocke une valeur persistante sans déclencher de re-render.</p>
+
+<pre><code>const inputRef = useRef();
+
+function focusInput() {
+  inputRef.current.focus();
+}
+
+&lt;input ref={inputRef} /&gt;
+&lt;button onClick={focusInput}&gt;Focus&lt;/button&gt;
+</code></pre>
+
+<h2>6. Rendu conditionnel</h2>
+
+<pre><code>{isLogged ? &lt;Dashboard /&gt; : &lt;Login /&gt;}
+</code></pre>
+
+<h3>Version plus lisible :</h3>
+<pre><code>if (!user) {
+  return &lt;Login /&gt;;
+}
+return &lt;Dashboard user={user} /&gt;;
+</code></pre>
+
+<h2>7. Listes et clés</h2>
+
+<pre><code>const fruits = ["Pomme", "Banane", "Orange"];
+
+&lt;ul&gt;
+  {fruits.map((fruit, index) => (
+    &lt;li key={index}&gt;{fruit}&lt;/li&gt;
+  ))}
+&lt;/ul&gt;
+</code></pre>
+
+<h2>8. Formulaires (composants contrôlés)</h2>
+
+<pre><code>const [email, setEmail] = useState("");
+
+&lt;input
+  type="email"
+  value={email}
+  onChange={e => setEmail(e.target.value)}
+/&gt;
+</code></pre>
+
+<h2>9. Context API</h2>
+<p>Permet de partager un état global sans passer les props partout.</p>
+
+<pre><code>const ThemeContext = createContext();
+
+function App() {
+  return (
+    &lt;ThemeContext.Provider value="dark"&gt;
+      &lt;Home /&gt;
+    &lt;/ThemeContext.Provider&gt;
+  );
+}
+
+function Home() {
+  const theme = useContext(ThemeContext);
+  return &lt;p&gt;Thème actuel : {theme}&lt;/p&gt;;
+}
+</code></pre>
+
+<h2>10. useReducer</h2>
+<p>Alternative à useState pour des états complexes.</p>
+
+<pre><code>function reducer(state, action) {
+  switch (action.type) {
+    case "increment":
+      return { count: state.count + 1 };
+    case "decrement":
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+}
+
+const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+&lt;button onClick={() => dispatch({ type: "increment" })}&gt;+1&lt;/button&gt;
+</code></pre>
+
+<h2>11. useMemo & useCallback</h2>
+
+<h3>useMemo : mémoriser une valeur</h3>
+<pre><code>const expensiveValue = useMemo(() => compute(data), [data]);
+</code></pre>
+
+<h3>useCallback : mémoriser une fonction</h3>
+<pre><code>const handleClick = useCallback(() => {
+  console.log("clic");
+}, []);
+</code></pre>
+
+<h2>12. Bonnes pratiques</h2>
+<ul>
+  <li>Découper en composants simples et réutilisables.</li>
+  <li>Utiliser des clés stables (id plutôt qu’index).</li>
+  <li>Éviter les useEffect inutiles.</li>
+  <li>Préférer les composants fonctionnels.</li>
+  <li>Nommer clairement les états et handlers.</li>
+</ul>
+
+</body>
+</html>
