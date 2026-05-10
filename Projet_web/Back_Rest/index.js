@@ -1,7 +1,14 @@
 import express from "express";
 import cors from "cors";
+import Database from "better-sqlite3";
+
+const db = new Database("abalone.db");
 
 const app = express();
+
+const users = db.prepare("SELECT * FROM users").all();
+console.log(users);
+
 app.use(cors());
 app.use(express.json());
 
@@ -14,6 +21,16 @@ app.get("/api/hello", (req, res) => {
 app.post("/api/data", (req, res) => {
   const data = req.body;
   res.json({ reçu: data });
+});
+
+app.post("/api/users", (req, res) => {
+  const { username, email } = req.body;
+  const id = crypto.randomUUID();
+
+  db.prepare("INSERT INTO users (id, username, email) VALUES (?, ?, ?)")
+    .run(id, username, email);
+
+  res.json({ id, username, email });
 });
 
 app.listen(3000, () => {
