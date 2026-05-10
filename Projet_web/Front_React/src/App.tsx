@@ -1,18 +1,34 @@
 import { useEffect, useState } from "react";
 
 function App() {
-  const [message, setMessage] = useState("");
+  const [board, setBoard] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/hello")
+    fetch("http://localhost:3000/api/board/1")
       .then(res => res.json())
-      .then(data => setMessage(data.message));
+      .then(data => {
+        if (!data || !data.board) return;
+
+        const parsed = JSON.parse(data.board); // <-- IMPORTANT
+        setBoard(parsed);
+      });
   }, []);
 
   return (
     <div>
-      <h1>Front React + API REST</h1>
-      <p>Message du back : {message}</p>
+      <h1>Abalone — Test Plateau</h1>
+
+      {!board && <p>Chargement...</p>}
+
+      {board && (
+        <ul>
+          {Object.entries(board).map(([pos, value]) => (
+            <li key={pos}>
+              <strong>{pos}</strong> : {value}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
