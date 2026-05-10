@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+
+import authRoutes from "./routes/auth.js";   // ← AJOUT
 import usersRoutes from "./routes/users.js";
 import gamesRoutes from "./routes/games.js";
 import movesRoutes from "./routes/moves.js";
@@ -11,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use("/api/auth", authRoutes);   // ← AJOUT
 app.use("/api/users", usersRoutes);
 app.use("/api/games", gamesRoutes);
 app.use("/api/moves", movesRoutes);
