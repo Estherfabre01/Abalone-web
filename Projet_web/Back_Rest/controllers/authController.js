@@ -32,5 +32,12 @@ export function login(req, res) {
 
   const token = jwt.sign({ id: user.id }, "SECRET_KEY");
 
-  res.json({ token });
+  res.json({
+  token,
+  user: {
+    id: user.id,
+    username: user.username,
+    email: user.email
+   }
+});
 }
