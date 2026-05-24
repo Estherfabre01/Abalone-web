@@ -7,14 +7,28 @@ export default function Header() {
     <header
       style={{
         display: "flex",
-        justifyContent: "flex-end",
+        justifyContent: "space-between",
         alignItems: "center",
         padding: "15px 25px",
-        background: "white",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        background: "linear-gradient(90deg, #4a90e2, #6a5acd)",
+        color: "white",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
         fontFamily: "Arial, sans-serif"
       }}
     >
+      {/* Logo + Titre */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/833/833472.png"
+          alt="logo"
+          style={{ width: "40px", height: "40px" }}
+        />
+        <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "bold" }}>
+          AB.io
+        </h1>
+      </div>
+
+      {/* Profil utilisateur */}
       {user && (
         <div
           style={{
@@ -23,17 +37,18 @@ export default function Header() {
             gap: "12px",
             padding: "8px 12px",
             borderRadius: "8px",
-            background: "#eef2f7"
+            background: "rgba(255,255,255,0.15)",
+            backdropFilter: "blur(4px)"
           }}
         >
           {/* Avatar rond */}
           <div
             style={{
-              width: "38px",
-              height: "38px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "#4a90e2",
-              color: "white",
+              background: "white",
+              color: "#4a90e2",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
@@ -46,8 +61,12 @@ export default function Header() {
 
           {/* Infos user */}
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontWeight: "bold" }}>{user.username}</div>
-            <div style={{ fontSize: "12px", color: "#555" }}>{user.email}</div>
+            <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+              {user.username}
+            </div>
+            <div style={{ fontSize: "12px", opacity: 0.8 }}>
+              {user.email}
+            </div>
           </div>
 
           {/* Bouton logout */}
@@ -56,13 +75,16 @@ export default function Header() {
             style={{
               marginLeft: "10px",
               padding: "6px 12px",
-              background: "#e74c3c",
+              background: "#ff4d4d",
               color: "white",
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
-              fontWeight: "bold"
+              fontWeight: "bold",
+              transition: "0.2s"
             }}
+            onMouseOver={(e) => (e.target.style.background = "#e63939")}
+            onMouseOut={(e) => (e.target.style.background = "#ff4d4d")}
           >
             Déconnexion
           </button>

@@ -1,71 +1,50 @@
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [data, setData] = useState(null);
+  const [games, setGames] = useState([]);
 
-  async function loadFriends() {
+  async function loadGames() {
     const token = localStorage.getItem("token");
 
-    if (!token) {
-      setData({ error: "Tu dois être connecté pour voir tes amis." });
-      return;
-    }
-
-    const res = await fetch("http://localhost:3000/api/friends", {
+    const res = await fetch("http://localhost:3000/api/games", {
       headers: {
         Authorization: "Bearer " + token
       }
     });
 
     const json = await res.json();
-    setData(json);
+    setGames(json.games || []);
   }
 
   useEffect(() => {
-    loadFriends();
+    loadGames();
   }, []);
 
   return (
     <div style={{ padding: 20 }}>
       <h1>Accueil</h1>
 
-      {!data && <p>Chargement...</p>}
+      {/* Boutons créer/charger */}
+      <div style={{ marginBottom: 20 }}>
+        <button style={{ padding: 10, marginRight: 10 }}>
+          Créer une partie
+        </button>
 
-      {data?.error && <p style={{ color: "red" }}>{data.error}</p>}
+        <button style={{ padding: 10 }}>
+          Charger une partie
+        </button>
+      </div>
 
-      {data && !data.error && (
-        <div>
-          <h2>👥 Mes amis</h2>
-          {data.friends.length === 0 && <p>Aucun ami pour le moment.</p>}
-          <ul>
-            {data.friends.map((f) => (
-              <li key={f.id}>
-                {f.username} ({f.email})
-              </li>
-            ))}
-          </ul>
-
-          <h2>📥 Demandes reçues</h2>
-          {data.received_requests.length === 0 && <p>Aucune demande reçue.</p>}
-          <ul>
-            {data.received_requests.map((r) => (
-              <li key={r.id}>
-                {r.sender_username} t’a envoyé une demande.
-              </li>
-            ))}
-          </ul>
-
-          <h2>📤 Demandes envoyées</h2>
-          {data.sent_requests.length === 0 && <p>Aucune demande envoyée.</p>}
-          <ul>
-            {data.sent_requests.map((s) => (
-              <li key={s.id}>
-                Demande envoyée à {s.receiver_username}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Liste des parties en cours */}
+      <h2>🎮 Parties en cours</h2>
+      {games.length === 0 && <p>Aucune partie en cours.</p>}
+      <ul>
+        {games.map((g) => (
+          <li key={g.id}>
+            Partie #{g.id} — {g.status}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

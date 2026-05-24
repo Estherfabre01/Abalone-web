@@ -87,3 +87,81 @@ export function getFriends(req, res) {
     res.status(500).json({ error: "Erreur interne serveur" });
   }
 }
+
+export function acceptFriendRequest(req, res) {
+  try {
+    const userId = req.user.id;
+    const { request_id } = req.body;
+
+    if (!request_id) {
+      return res.status(400).json({ error: "request_id manquant" });
+    }
+
+    // Vérifier que la demande existe et t'est destinée
+    const request = db.prepare(`
+      SELECT * FROM friend_requests
+      WHERE id = ? AND receiver_id = ? AND status = 'pending'
+    `).get(request_id, userId);
+
+    if (!request) {
+      return res.status(404).json({ error: "Demande introuvable ou déjà traitée" });
+    }
+
+    // Ajouter dans la table friends
+    const id1 = uuid();
+    const id2 = uuid();
+
+    db.prepare(`
+      INSERT INTO friends (id, user_id, friend_id)
+      VALUES (?, ?, ?)
+    `).run(id1, userId, request.sender_id);
+
+    db.prepare(`
+      INSERT INTO friends (id, user_id, friend_id)
+      VALUES (?, ?, ?)
+    `).run(id2, request.sender_id, userId);
+
+    // Mettre la demande en "accepted"
+    db.prepare(`
+      UPDATE friend_requests SET status = 'accepted'
+      WHERE id = ?
+    `).run(request_id);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erreur acceptFriendRequest :", err);
+    res.status(500).json({ error: "Erreur interne serveur" });
+  }
+}
+
+export function rejectFriendRequest(req, res) {
+  try {
+    const userId = req.user.id;
+    const { request_id } = req.body;
+
+    if (!request_id) {
+      return res.status(400).json({ error: "request_id manquant" });
+    }
+
+    const request = db.prepare(`
+      SELECT * FROM friend_requests
+      WHERE id = ? AND receiver_id = ? AND status = 'pending'
+    `).get(request_id, userId);
+
+    if (!request) {
+      return res.status(404).json({ error: "Demande introuvable ou déjà traitée" });
+    }
+
+    db.prepare(`
+      UPDATE friend_requests SET status = 'rejected'
+      WHERE id = ?
+    `).run(request_id);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Erreur rejectFriendRequest :", err);
+    res.status(500).json({ error: "Erreur interne serveur" });
+  }
+}

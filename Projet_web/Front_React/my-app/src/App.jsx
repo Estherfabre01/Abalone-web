@@ -5,29 +5,30 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
-import Header from "./pages/Header";
 import Welcome from "./pages/Welcome";
-import Friends from "./pages/Friends";
-  
+import ProtectedLayout from "./layouts/ProtectedLayout";
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/welcome" element={<Welcome />} />
+
+          {/* Page publique */}
+          <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/friends" element={<Friends />} />
 
+          {/* Pages protégées */}
           <Route
-            path="/"
             element={
               <ProtectedRoute>
-                <Header />
-                <Home />
+                <ProtectedLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route path="/home" element={<Home />} />
+          </Route>
 
         </Routes>
       </BrowserRouter>
