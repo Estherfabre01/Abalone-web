@@ -13,7 +13,7 @@ export default function Friends() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ friend_id: friendId })
+      body: JSON.stringify({ receiver_id: friendId })
     });
 
     const data = await res.json();

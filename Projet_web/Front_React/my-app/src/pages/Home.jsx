@@ -1,57 +1,71 @@
+import { useEffect, useState } from "react";
+
 export default function Home() {
+  const [data, setData] = useState(null);
+
+  async function loadFriends() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setData({ error: "Tu dois être connecté pour voir tes amis." });
+      return;
+    }
+
+    const res = await fetch("http://localhost:3000/api/friends", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    const json = await res.json();
+    setData(json);
+  }
+
+  useEffect(() => {
+    loadFriends();
+  }, []);
+
   return (
-    <div
-      style={{
-        height: "calc(100vh - 70px)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f5f7fa",
-        fontFamily: "Arial, sans-serif",
-        textAlign: "center"
-      }}
-    >
-      <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>
-        Bienvenue sur Abalone Online
-      </h1>
+    <div style={{ padding: 20 }}>
+      <h1>Accueil</h1>
 
-      <p style={{ fontSize: "18px", color: "#555", maxWidth: "500px" }}>
-        Tu es connecté. Tu peux maintenant créer une partie, rejoindre une partie,
-        ou accéder à ton profil.
-      </p>
+      {!data && <p>Chargement...</p>}
 
-      <div style={{ marginTop: "30px", display: "flex", gap: "20px" }}>
-        <button
-          style={{
-            padding: "12px 20px",
-            background: "#4a90e2",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "16px",
-            fontWeight: "bold"
-          }}
-        >
-          Créer une partie
-        </button>
+      {data?.error && <p style={{ color: "red" }}>{data.error}</p>}
 
-        <button
-          style={{
-            padding: "12px 20px",
-            background: "#2ecc71",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontSize: "16px",
-            fontWeight: "bold"
-          }}
-        >
-          Rejoindre une partie
-        </button>
-      </div>
+      {data && !data.error && (
+        <div>
+          <h2>👥 Mes amis</h2>
+          {data.friends.length === 0 && <p>Aucun ami pour le moment.</p>}
+          <ul>
+            {data.friends.map((f) => (
+              <li key={f.id}>
+                {f.username} ({f.email})
+              </li>
+            ))}
+          </ul>
+
+          <h2>📥 Demandes reçues</h2>
+          {data.received_requests.length === 0 && <p>Aucune demande reçue.</p>}
+          <ul>
+            {data.received_requests.map((r) => (
+              <li key={r.id}>
+                {r.sender_username} t’a envoyé une demande.
+              </li>
+            ))}
+          </ul>
+
+          <h2>📤 Demandes envoyées</h2>
+          {data.sent_requests.length === 0 && <p>Aucune demande envoyée.</p>}
+          <ul>
+            {data.sent_requests.map((s) => (
+              <li key={s.id}>
+                Demande envoyée à {s.receiver_username}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
