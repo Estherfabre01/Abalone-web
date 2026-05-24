@@ -3,6 +3,8 @@ PRAGMA foreign_keys = OFF;
 -- ============================
 -- DROP TABLES (ordre important)
 -- ============================
+DROP TABLE IF EXISTS friend_requests;
+DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS moves;
 DROP TABLE IF EXISTS board_states;
 DROP TABLE IF EXISTS games;
@@ -17,8 +19,11 @@ CREATE TABLE users (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     email TEXT UNIQUE,
+    password_hash TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_users_email ON users(email);
 
 -- ============================
 -- TABLE : games
@@ -43,7 +48,7 @@ CREATE TABLE board_states (
     id TEXT PRIMARY KEY,
     game_id TEXT NOT NULL,
     turn_number INTEGER NOT NULL,
-    board TEXT NOT NULL, -- JSON
+    board TEXT NOT NULL,
     current_player TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
@@ -58,9 +63,9 @@ CREATE TABLE moves (
     id TEXT PRIMARY KEY,
     game_id TEXT NOT NULL,
     player_id TEXT NOT NULL,
-    from_positions TEXT NOT NULL, -- JSON
-    to_positions TEXT NOT NULL,   -- JSON
-    pushed TEXT,                  -- JSON (optionnel)
+    from_positions TEXT NOT NULL,
+    to_positions TEXT NOT NULL,
+    pushed TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
@@ -68,10 +73,38 @@ CREATE TABLE moves (
 );
 
 -- ============================
--- INDEXES
+-- TABLE : friends
 -- ============================
-CREATE INDEX idx_games_player1 ON games(player1_id);
-CREATE INDEX idx_games_player2 ON games(player2_id);
-CREATE INDEX idx_board_states_game ON board_states(game_id);
-CREATE INDEX idx_moves_game ON moves(game_id);
-CREATE INDEX idx_moves_player ON moves(player_id);
+CREATE TABLE friends (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    friend_id TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+
+    UNIQUE(user_id, friend_id)
+);
+
+CREATE INDEX idx_friends_user ON friends(user_id);
+CREATE INDEX idx_friends_friend ON friends(friend_id);
+
+-- ============================
+-- TABLE : friend_requests
+-- ============================
+CREATE TABLE friend_requests (
+    id TEXT PRIMARY KEY,
+    sender_id TEXT NOT NULL,
+    receiver_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'rejected')),
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+
+    UNIQUE(sender_id, receiver_id)
+);
+
+CREATE INDEX idx_friend_requests_sender ON friend_requests(sender_id);
+CREATE INDEX idx_friend_requests_receiver ON friend_requests(receiver_id);

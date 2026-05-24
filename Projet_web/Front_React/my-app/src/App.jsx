@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Header from "./pages/Header";
 import Welcome from "./pages/Welcome";
+import Friends from "./pages/Friends";
   
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/friends" element={<Friends />} />
 
           <Route
             path="/"
