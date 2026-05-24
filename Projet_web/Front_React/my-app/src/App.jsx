@@ -6,13 +6,14 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Header from "./pages/Header";
+import Welcome from "./pages/Welcome";
   
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
