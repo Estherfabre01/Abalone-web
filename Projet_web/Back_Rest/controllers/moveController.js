@@ -13,13 +13,20 @@ export function playMove(req, res) {
     LIMIT 1
   `).get(gameId);
 
-  const board = JSON.parse(lastBoard.board);
+  // Charger la Map correctement
+  const boardMap = new Map(JSON.parse(lastBoard.board));
 
-  if (!isMoveValid(board, from, to)) {
+  // Validation
+  if (!isMoveValid(boardMap, from, to)) {
     return res.status(400).json({ error: "Invalid move" });
   }
 
-  const newBoard = applyMove(board, from, to);
+  // Appliquer le mouvement → renvoie une Map
+  const newBoardMap = applyMove(boardMap, from, to);
+
+  // Convertir Map → Array pour stockage
+  const newBoardArray = [...newBoardMap];
+
   const newTurn = lastBoard.turn_number + 1;
 
   db.prepare(`
@@ -29,7 +36,7 @@ export function playMove(req, res) {
     crypto.randomUUID(),
     gameId,
     newTurn,
-    JSON.stringify(newBoard),
+    JSON.stringify(newBoardArray),   // ← ICI LA CORRECTION
     req.user.id
   );
 
@@ -46,6 +53,7 @@ export function playMove(req, res) {
 
   res.json({ message: "Move played", turn: newTurn });
 }
+
 
 export function listMoves(req, res) {
   const moves = db.prepare(`

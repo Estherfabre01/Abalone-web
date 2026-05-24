@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Welcome from "./pages/Welcome";
 import ProtectedLayout from "./layouts/ProtectedLayout";
+import Game from "./pages/Game";
 
 export default function App() {
   return (
@@ -18,7 +19,7 @@ export default function App() {
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
+          <Route path="/game/:id" element={<Game />} />
           {/* Pages protégées */}
           <Route
             element={

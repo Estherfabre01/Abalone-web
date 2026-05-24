@@ -1,11 +1,10 @@
 import db from "../db.js";
 import crypto from "crypto";
-import { getInitialBoard } from "../services/abaloneEngine.js";
+import { getInitialBoard } from "../services/abaloneBoard.js";
+import { applyMove } from "../services/abaloneEngine.js";
 
 /**
  * Créer une partie avec un ami
- * player1 = utilisateur connecté
- * player2 = ami choisi
  */
 export function createGame(req, res) {
   const { opponent_id } = req.body;
@@ -23,11 +22,13 @@ export function createGame(req, res) {
     VALUES (?, ?, ?, 'in_progress')
   `).run(gameId, req.user.id, opponent_id);
 
-  // État initial du plateau
+  // Plateau initial (Map → Array)
+  const initialBoard = [...getInitialBoard()];
+
   db.prepare(`
     INSERT INTO board_states (id, game_id, turn_number, board, current_player)
     VALUES (?, ?, 1, ?, ?)
-  `).run(boardId, gameId, JSON.stringify(getInitialBoard()), req.user.id);
+  `).run(boardId, gameId, JSON.stringify(initialBoard), req.user.id);
 
   res.json({ id: gameId });
 }
@@ -44,7 +45,7 @@ export function getGame(req, res) {
 }
 
 /**
- * Rejoindre une partie (utile si tu veux garder la logique d'avant)
+ * Rejoindre une partie
  */
 export function joinGame(req, res) {
   db.prepare(`
@@ -57,7 +58,7 @@ export function joinGame(req, res) {
 }
 
 /**
- * Récupérer la liste des parties du joueur
+ * Lister les parties du joueur
  */
 export function getAllGames(req, res) {
   const games = db.prepare(`
@@ -96,4 +97,46 @@ export function getBoardAtTurn(req, res) {
   `).get(req.params.id, req.params.turn);
 
   res.json(board);
+}
+
+/**
+ * JOUER UN COUP
+ * move = { marbles: [[q,r], [q,r], ...], direction: "NE" }
+ */
+export function playMove(req, res) {
+  const gameId = req.params.id;
+  const { marbles, direction } = req.body;
+
+  // Récupérer le dernier plateau
+  const last = db.prepare(`
+    SELECT board, current_player
+    FROM board_states
+    WHERE game_id = ?
+    ORDER BY turn_number DESC
+    LIMIT 1
+  `).get(gameId);
+
+  const boardMap = new Map(JSON.parse(last.board));
+
+  // Appliquer le mouvement
+  const newBoard = applyMove(boardMap, { marbles, direction });
+
+  // Nouveau numéro de tour
+  const turn = db.prepare(`
+    SELECT MAX(turn_number) AS t FROM board_states WHERE game_id = ?
+  `).get(gameId).t + 1;
+
+  // Sauvegarder
+  db.prepare(`
+    INSERT INTO board_states (id, game_id, turn_number, board, current_player)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(
+    crypto.randomUUID(),
+    gameId,
+    turn,
+    JSON.stringify([...newBoard]),
+    req.user.id
+  );
+
+  res.json({ success: true, board: [...newBoard] });
 }

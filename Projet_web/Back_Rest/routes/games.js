@@ -6,7 +6,8 @@ import {
   joinGame,
   getBoard,
   getBoardAtTurn,
-  getAllGames
+  getAllGames,
+  playMove
 } from "../controllers/gamesController.js";
 
 const router = express.Router();
@@ -28,5 +29,5 @@ router.get("/:id/board", authMiddleware, getBoard);
 
 // ➜ RÉCUPÉRER LE PLATEAU À UN TOUR DONNÉ
 router.get("/:id/board/:turn", authMiddleware, getBoardAtTurn);
-
+router.post("/:id/move", authMiddleware, playMove);
 export default router;
