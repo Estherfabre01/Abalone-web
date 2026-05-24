@@ -1,34 +1,48 @@
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
 
+/**
+ * Envoyer une demande d'ami via username
+ */
 export function sendFriendRequest(req, res) {
   try {
     const senderId = req.user.id;
-    const { receiver_id } = req.body;
+    const { username } = req.body;
 
-    if (!receiver_id) {
-      return res.status(400).json({ error: "receiver_id manquant" });
+    if (!username) {
+      return res.status(400).json({ error: "username manquant" });
     }
+
+    // Trouver l'utilisateur par username
+    const receiver = db
+      .prepare("SELECT id FROM users WHERE username = ?")
+      .get(username);
+
+    if (!receiver) {
+      return res.status(404).json({ error: "Utilisateur introuvable" });
+    }
+
+    const receiver_id = receiver.id;
 
     if (receiver_id === senderId) {
       return res.status(400).json({ error: "Impossible de s'ajouter soi-même" });
     }
 
-    // Vérifier si l'utilisateur existe
-    const userExists = db
-      .prepare("SELECT id FROM users WHERE id = ?")
-      .get(receiver_id);
+    // Vérifier si déjà amis
+    const alreadyFriends = db.prepare(`
+      SELECT * FROM friends
+      WHERE user_id = ? AND friend_id = ?
+    `).get(senderId, receiver_id);
 
-    if (!userExists) {
-      return res.status(404).json({ error: "Utilisateur introuvable" });
+    if (alreadyFriends) {
+      return res.status(400).json({ error: "Vous êtes déjà amis" });
     }
 
     // Vérifier si une demande existe déjà
-    const existing = db
-      .prepare(
-        "SELECT * FROM friend_requests WHERE sender_id = ? AND receiver_id = ?"
-      )
-      .get(senderId, receiver_id);
+    const existing = db.prepare(`
+      SELECT * FROM friend_requests
+      WHERE sender_id = ? AND receiver_id = ? AND status = 'pending'
+    `).get(senderId, receiver_id);
 
     if (existing) {
       return res.status(400).json({ error: "Demande déjà envoyée" });
@@ -36,9 +50,10 @@ export function sendFriendRequest(req, res) {
 
     const id = uuid();
 
-    db.prepare(
-      "INSERT INTO friend_requests (id, sender_id, receiver_id, status) VALUES (?, ?, ?, ?)"
-    ).run(id, senderId, receiver_id, "pending");
+    db.prepare(`
+      INSERT INTO friend_requests (id, sender_id, receiver_id, status)
+      VALUES (?, ?, ?, 'pending')
+    `).run(id, senderId, receiver_id);
 
     res.json({ success: true, request_id: id });
 
@@ -48,29 +63,32 @@ export function sendFriendRequest(req, res) {
   }
 }
 
+/**
+ * Récupérer amis + demandes
+ */
 export function getFriends(req, res) {
   try {
     const userId = req.user.id;
 
     // Amis confirmés
     const friends = db.prepare(`
-      SELECT u.id, u.username, u.email, f.created_at
+      SELECT u.id, u.username, u.email
       FROM friends f
       JOIN users u ON u.id = f.friend_id
       WHERE f.user_id = ?
     `).all(userId);
 
-    // Demandes reçues (pending)
+    // Demandes reçues
     const received = db.prepare(`
-      SELECT fr.id, fr.sender_id, u.username AS sender_username, fr.created_at
+      SELECT fr.id, fr.sender_id, u.username AS sender_username
       FROM friend_requests fr
       JOIN users u ON u.id = fr.sender_id
       WHERE fr.receiver_id = ? AND fr.status = 'pending'
     `).all(userId);
 
-    // Demandes envoyées (pending)
+    // Demandes envoyées
     const sent = db.prepare(`
-      SELECT fr.id, fr.receiver_id, u.username AS receiver_username, fr.created_at
+      SELECT fr.id, fr.receiver_id, u.username AS receiver_username
       FROM friend_requests fr
       JOIN users u ON u.id = fr.receiver_id
       WHERE fr.sender_id = ? AND fr.status = 'pending'
@@ -88,6 +106,9 @@ export function getFriends(req, res) {
   }
 }
 
+/**
+ * Accepter une demande d'ami
+ */
 export function acceptFriendRequest(req, res) {
   try {
     const userId = req.user.id;
@@ -97,20 +118,19 @@ export function acceptFriendRequest(req, res) {
       return res.status(400).json({ error: "request_id manquant" });
     }
 
-    // Vérifier que la demande existe et t'est destinée
     const request = db.prepare(`
       SELECT * FROM friend_requests
       WHERE id = ? AND receiver_id = ? AND status = 'pending'
     `).get(request_id, userId);
 
     if (!request) {
-      return res.status(404).json({ error: "Demande introuvable ou déjà traitée" });
+      return res.status(404).json({ error: "Demande introuvable" });
     }
 
-    // Ajouter dans la table friends
     const id1 = uuid();
     const id2 = uuid();
 
+    // Ajout dans les deux sens
     db.prepare(`
       INSERT INTO friends (id, user_id, friend_id)
       VALUES (?, ?, ?)
@@ -121,7 +141,7 @@ export function acceptFriendRequest(req, res) {
       VALUES (?, ?, ?)
     `).run(id2, request.sender_id, userId);
 
-    // Mettre la demande en "accepted"
+    // Marquer comme acceptée
     db.prepare(`
       UPDATE friend_requests SET status = 'accepted'
       WHERE id = ?
@@ -135,6 +155,9 @@ export function acceptFriendRequest(req, res) {
   }
 }
 
+/**
+ * Rejeter une demande d'ami
+ */
 export function rejectFriendRequest(req, res) {
   try {
     const userId = req.user.id;
@@ -150,7 +173,7 @@ export function rejectFriendRequest(req, res) {
     `).get(request_id, userId);
 
     if (!request) {
-      return res.status(404).json({ error: "Demande introuvable ou déjà traitée" });
+      return res.status(404).json({ error: "Demande introuvable" });
     }
 
     db.prepare(`

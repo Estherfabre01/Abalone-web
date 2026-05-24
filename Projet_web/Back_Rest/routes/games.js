@@ -1,19 +1,32 @@
 import express from "express";
-import auth from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 import {
   createGame,
   getGame,
   joinGame,
   getBoard,
-  getBoardAtTurn
-} from "../controllers/gameController.js";
+  getBoardAtTurn,
+  getAllGames
+} from "../controllers/gamesController.js";
 
 const router = express.Router();
 
-router.post("/", auth, createGame);
-router.get("/:id", auth, getGame);
-router.patch("/:id/join", auth, joinGame);
-router.get("/:id/board", auth, getBoard);
-router.get("/:id/board/:turn", auth, getBoardAtTurn);
+// ➜ LISTER TOUTES LES PARTIES DU JOUEUR
+router.get("/", authMiddleware, getAllGames);
+
+// ➜ CRÉER UNE PARTIE AVEC UN AMI
+router.post("/create", authMiddleware, createGame);
+
+// ➜ RÉCUPÉRER UNE PARTIE
+router.get("/:id", authMiddleware, getGame);
+
+// ➜ REJOINDRE UNE PARTIE (optionnel)
+router.post("/:id/join", authMiddleware, joinGame);
+
+// ➜ RÉCUPÉRER LE PLATEAU ACTUEL
+router.get("/:id/board", authMiddleware, getBoard);
+
+// ➜ RÉCUPÉRER LE PLATEAU À UN TOUR DONNÉ
+router.get("/:id/board/:turn", authMiddleware, getBoardAtTurn);
 
 export default router;

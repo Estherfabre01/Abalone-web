@@ -17,7 +17,7 @@ export default function Login() {
 
     if (res.token && res.user) {
       login(res.token, res.user);
-      navigate("/");
+      navigate("/home");
     }
   }
 
