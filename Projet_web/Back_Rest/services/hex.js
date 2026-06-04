@@ -1,10 +1,10 @@
 export const DIRECTIONS = {
-  N:  [0, -1],
+  NW:  [0, -1],
   NE: [1, -1],
-  SE: [1, 0],
-  S:  [0, 1],
+  E: [1, 0],
+  SE:  [0, 1],
   SW: [-1, 1],
-  NW: [-1, 0]
+  W: [-1, 0]
 };
 
 export function add([q, r], [dq, dr]) {

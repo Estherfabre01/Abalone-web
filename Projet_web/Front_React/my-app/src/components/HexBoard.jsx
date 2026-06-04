@@ -1,10 +1,7 @@
-import { useState } from "react";
 import HexCell from "./HexCell";
 
-export default function HexBoard({ board, onSelect }) {
-  const [selected, setSelected] = useState(null);
-
-  if (!Array.isArray(board)) return null;
+export default function HexBoard({ board, selectedKey, onSelect }) {
+  console.log("HexBoard → selectedKey =", selectedKey);
 
   const size = 28;
 
@@ -28,40 +25,29 @@ export default function HexBoard({ board, onSelect }) {
   const offsetX = width / 2 - (minX + maxX) / 2;
   const offsetY = height / 2 - (minY + maxY) / 2;
 
-  function handleClick(key, value) {
-    if (value === ".") return;
-
-    setSelected(key);
+  function handleClick(key) {
+    console.log("HexBoard → click sur", key);
     onSelect(key);
   }
 
   return (
     <svg width={width} height={height} style={{ background: "#ddd" }}>
-      {pixelCoords.map(({ key, value, x, y }) => (
-        <HexCell
-          key={key}
-          x={x + offsetX}
-          y={y + offsetY}
-          value={value}
-          onClick={() => handleClick(key, value)}
-        />
-      ))}
+      {pixelCoords.map(({ key, value, x, y }) => {
+        const isSelected = selectedKey === key;
 
-      {/* Cercle de sélection */}
-      {selected && (
-        <circle
-          cx={
-            pixelCoords.find(c => c.key === selected).x + offsetX
-          }
-          cy={
-            pixelCoords.find(c => c.key === selected).y + offsetY
-          }
-          r={22}
-          stroke="yellow"
-          strokeWidth={3}
-          fill="transparent"
-        />
-      )}
+        console.log("Cell", key, "selected =", isSelected);
+
+        return (
+          <HexCell
+            key={key}
+            x={x + offsetX}
+            y={y + offsetY}
+            value={value}
+            selected={isSelected}
+            onClick={() => handleClick(key)}
+          />
+        );
+      })}
     </svg>
   );
 }
