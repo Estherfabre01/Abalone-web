@@ -3,7 +3,7 @@ import HexBoard from "../components/HexBoard";
 
 export default function Game() {
   const [board, setBoard] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(null); // null ou tableau
 
   async function loadBoard() {
     try {
@@ -29,17 +29,38 @@ export default function Game() {
   }, []);
 
   function handleSelect(key) {
-    console.log("handleSelect → key =", key);
-    setSelected(key.trim());
+    const clean = key.trim();
+
+    // Première sélection
+    if (!selected) {
+      setSelected([clean]);
+      return;
+    }
+
+    // Si déjà 3 billes → reset
+    if (selected.length >= 3) {
+      setSelected([clean]);
+      return;
+    }
+
+    // Si déjà sélectionnée → on la retire
+    if (selected.includes(clean)) {
+      const next = selected.filter(k => k !== clean);
+      setSelected(next.length > 0 ? next : null);
+      return;
+    }
+
+    // Sinon on l'ajoute
+    setSelected([...selected, clean]);
   }
 
   async function handleMove(direction) {
-    if (!selected) return;
+    if (!selected || selected.length === 0) return;
 
     const token = localStorage.getItem("token");
     const gameId = window.location.pathname.split("/").pop();
 
-    const [q, r] = selected.split(",").map(Number);
+    const marbles = selected.map(k => k.split(",").map(Number));
 
     const res = await fetch(`http://localhost:3000/api/games/${gameId}/move`, {
       method: "POST",
@@ -48,7 +69,7 @@ export default function Game() {
         Authorization: "Bearer " + token
       },
       body: JSON.stringify({
-        marbles: [[q, r]],
+        marbles,
         direction
       })
     });
@@ -62,7 +83,7 @@ export default function Game() {
     setSelected(null);
   }
 
-  console.log("Game.jsx → selected =", selected);
+  const hasSelection = Array.isArray(selected) && selected.length > 0;
 
   return (
     <div style={{ padding: 20 }}>
@@ -74,9 +95,9 @@ export default function Game() {
         onSelect={handleSelect}
       />
 
-      {selected && (
+      {hasSelection && (
         <div style={{ marginTop: 20 }}>
-          <h3>Déplacer la bille :</h3>
+          <h3>Déplacer les billes sélectionnées :</h3>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button onClick={() => handleMove("NW")}>NW</button>

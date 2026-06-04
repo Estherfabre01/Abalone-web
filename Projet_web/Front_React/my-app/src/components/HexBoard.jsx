@@ -1,7 +1,7 @@
 import HexCell from "./HexCell";
 
 export default function HexBoard({ board, selectedKey, onSelect }) {
-  console.log("HexBoard → selectedKey =", selectedKey);
+  if (!Array.isArray(board)) return null;
 
   const size = 28;
 
@@ -26,28 +26,21 @@ export default function HexBoard({ board, selectedKey, onSelect }) {
   const offsetY = height / 2 - (minY + maxY) / 2;
 
   function handleClick(key) {
-    console.log("HexBoard → click sur", key);
     onSelect(key);
   }
 
   return (
     <svg width={width} height={height} style={{ background: "#ddd" }}>
-      {pixelCoords.map(({ key, value, x, y }) => {
-        const isSelected = selectedKey === key;
-
-        console.log("Cell", key, "selected =", isSelected);
-
-        return (
-          <HexCell
-            key={key}
-            x={x + offsetX}
-            y={y + offsetY}
-            value={value}
-            selected={isSelected}
-            onClick={() => handleClick(key)}
-          />
-        );
-      })}
+      {pixelCoords.map(({ key, value, x, y }) => (
+        <HexCell
+          key={key}
+          x={x + offsetX}
+          y={y + offsetY}
+          value={value}
+          selected={Array.isArray(selectedKey) && selectedKey.includes(key)}
+          onClick={() => handleClick(key)}
+        />
+      ))}
     </svg>
   );
 }
