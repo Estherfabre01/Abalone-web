@@ -4,8 +4,9 @@ import { isMoveValid, applyMove } from "../services/abaloneEngine.js";
 
 export function playMove(req, res) {
   const gameId = req.params.id;
-  const { from, to } = req.body;
+  const { marbles, direction } = req.body;
 
+  // 1) Récupérer le dernier état du plateau
   const lastBoard = db.prepare(`
     SELECT * FROM board_states
     WHERE game_id = ?
@@ -13,22 +14,31 @@ export function playMove(req, res) {
     LIMIT 1
   `).get(gameId);
 
-  // Charger la Map correctement
-  const boardMap = new Map(JSON.parse(lastBoard.board));
-
-  // Validation
-  if (!isMoveValid(boardMap, from, to)) {
-    return res.status(400).json({ error: "Invalid move" });
+  if (!lastBoard) {
+    return res.status(404).json({ error: "Game not found" });
   }
 
-  // Appliquer le mouvement → renvoie une Map
-  const newBoardMap = applyMove(boardMap, from, to);
+  // 2) Charger la Map
+  const boardMap = new Map(JSON.parse(lastBoard.board));
 
-  // Convertir Map → Array pour stockage
+  // 3) Validation du mouvement
+  const validation = isMoveValid(boardMap, { marbles, direction });
+
+  if (!validation.valid) {
+    return res.status(400).json({
+      error: "Invalid move",
+      reason: validation.reason
+    });
+  }
+
+  // 4) Appliquer le mouvement
+  const newBoardMap = applyMove(boardMap, { marbles, direction });
+
+  // 5) Convertir Map → Array pour stockage
   const newBoardArray = [...newBoardMap];
-
   const newTurn = lastBoard.turn_number + 1;
 
+  // 6) Sauvegarder le nouvel état du plateau
   db.prepare(`
     INSERT INTO board_states (id, game_id, turn_number, board, current_player)
     VALUES (?, ?, ?, ?, ?)
@@ -36,10 +46,11 @@ export function playMove(req, res) {
     crypto.randomUUID(),
     gameId,
     newTurn,
-    JSON.stringify(newBoardArray),   // ← ICI LA CORRECTION
+    JSON.stringify(newBoardArray),
     req.user.id
   );
 
+  // 7) Sauvegarder le coup joué
   db.prepare(`
     INSERT INTO moves (id, game_id, player_id, from_positions, to_positions)
     VALUES (?, ?, ?, ?, ?)
@@ -47,13 +58,18 @@ export function playMove(req, res) {
     crypto.randomUUID(),
     gameId,
     req.user.id,
-    JSON.stringify(from),
-    JSON.stringify(to)
+    JSON.stringify(marbles),
+    JSON.stringify(direction)
   );
 
-  res.json({ message: "Move played", turn: newTurn });
+  // 8) Réponse au frontend
+  res.json({
+    message: "Move played",
+    turn: newTurn,
+    board: Object.fromEntries(newBoardMap),
+    reason: validation.reason
+  });
 }
-
 
 export function listMoves(req, res) {
   const moves = db.prepare(`

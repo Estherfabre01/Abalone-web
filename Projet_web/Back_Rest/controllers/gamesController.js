@@ -99,44 +99,4 @@ export function getBoardAtTurn(req, res) {
   res.json(board);
 }
 
-/**
- * JOUER UN COUP
- * move = { marbles: [[q,r], [q,r], ...], direction: "NE" }
- */
-export function playMove(req, res) {
-  const gameId = req.params.id;
-  const { marbles, direction } = req.body;
 
-  // Récupérer le dernier plateau
-  const last = db.prepare(`
-    SELECT board, current_player
-    FROM board_states
-    WHERE game_id = ?
-    ORDER BY turn_number DESC
-    LIMIT 1
-  `).get(gameId);
-
-  const boardMap = new Map(JSON.parse(last.board));
-
-  // Appliquer le mouvement
-  const newBoard = applyMove(boardMap, { marbles, direction });
-
-  // Nouveau numéro de tour
-  const turn = db.prepare(`
-    SELECT MAX(turn_number) AS t FROM board_states WHERE game_id = ?
-  `).get(gameId).t + 1;
-
-  // Sauvegarder
-  db.prepare(`
-    INSERT INTO board_states (id, game_id, turn_number, board, current_player)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(
-    crypto.randomUUID(),
-    gameId,
-    turn,
-    JSON.stringify([...newBoard]),
-    req.user.id
-  );
-
-  res.json({ success: true, board: [...newBoard] });
-}

@@ -4,23 +4,30 @@ import Direction from "../components/Direction";
 
 export default function Game() {
   const [board, setBoard] = useState([]);
-  const [selected, setSelected] = useState(null); // null ou tableau
+  const [selected, setSelected] = useState(null);
 
   async function loadBoard() {
     try {
       const token = localStorage.getItem("token");
       const gameId = window.location.pathname.split("/").pop();
 
+      console.log("[LOAD] GET /board gameId =", gameId);
+
       const res = await fetch(`http://localhost:3000/api/games/${gameId}/board`, {
         headers: { Authorization: "Bearer " + token }
       });
 
       const data = await res.json();
+
+      console.log("[LOAD] Réponse backend =", data);
+
       const parsed = JSON.parse(data.board);
+
+      console.log("[LOAD] Plateau parsé =", parsed);
 
       setBoard(parsed);
     } catch (err) {
-      console.error("Erreur loadBoard :", err);
+      console.error("[LOAD] Erreur loadBoard :", err);
       setBoard([]);
     }
   }
@@ -30,28 +37,26 @@ export default function Game() {
   }, []);
 
   function handleSelect(key) {
+    console.log("[SELECT] Clic sur =", key);
+
     const clean = key.trim();
 
-    // Première sélection
     if (!selected) {
       setSelected([clean]);
       return;
     }
 
-    // Si déjà 3 billes → reset
+    if (selected.includes(clean)) {
+      const next = selected.filter(k => k !== clean);
+      setSelected(next.length ? next : null);
+      return;
+    }
+
     if (selected.length >= 3) {
       setSelected([clean]);
       return;
     }
 
-    // Si déjà sélectionnée → on la retire
-    if (selected.includes(clean)) {
-      const next = selected.filter(k => k !== clean);
-      setSelected(next.length > 0 ? next : null);
-      return;
-    }
-
-    // Sinon on l'ajoute
     setSelected([...selected, clean]);
   }
 
@@ -63,43 +68,48 @@ export default function Game() {
 
     const marbles = selected.map(k => k.split(",").map(Number));
 
-    const res = await fetch(`http://localhost:3000/api/games/${gameId}/move`, {
+    console.log("[MOVE] Envoi au backend :", { marbles, direction });
+
+    const res = await fetch(`http://localhost:3000/api/moves/${gameId}/move`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({
-        marbles,
-        direction
-      })
+      body: JSON.stringify({ marbles, direction })
     });
 
     const data = await res.json();
 
+    console.log("[MOVE] Réponse backend =", data);
+
+    if (data.error) {
+      console.log("[MOVE] Mouvement refusé :", data.reason);
+      alert(data.reason || data.error);
+      return;
+    }
+
     if (data.board) {
-      setBoard(data.board);
+      const nextBoard = Array.isArray(data.board)
+        ? data.board
+        : Object.entries(data.board);
+
+      console.log("[MOVE] Mise à jour plateau normalisé =", nextBoard);
+      setBoard(nextBoard);
     }
 
     setSelected(null);
   }
 
-  const hasSelection = Array.isArray(selected) && selected.length > 0;
-
   return (
-    <div style={{ padding: 20 }}>
-      {hasSelection && (
-        <Direction onMove={handleMove} />
-      )}
-      <h1>Plateau Abalone</h1>
+    <div>
+      {selected && <Direction onMove={handleMove} />}
 
       <HexBoard
         board={board}
         selectedKey={selected}
         onSelect={handleSelect}
       />
-
-      
     </div>
   );
 }

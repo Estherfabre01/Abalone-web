@@ -4,7 +4,10 @@ import { playMove, listMoves } from "../controllers/moveController.js";
 
 const router = express.Router();
 
-router.post("/:id/moves", auth, playMove);
+// Jouer un coup
+router.post("/:id/move", auth, playMove);
+
+// Historique des coups
 router.get("/:id/moves", auth, listMoves);
 
 export default router;

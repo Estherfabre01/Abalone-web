@@ -5,14 +5,26 @@ export default function HexBoard({ board, selectedKey, onSelect }) {
 
   const size = 28;
 
-  const pixelCoords = board.map(([key, value]) => {
-    const [q, r] = key.split(",").map(Number);
+  const pixelCoords = board
+    .map(([key, value]) => {
+      if (!key || typeof key !== "string" || !key.includes(",")) {
+        return null; 
+      }
 
-    const x = size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
-    const y = size * (1.5 * r);
+      const [q, r] = key.split(",").map(Number);
 
-    return { key, value, x, y };
-  });
+      if (Number.isNaN(q) || Number.isNaN(r)) {
+        return null; // ignore les coordonnées invalides
+      }
+
+      const x = size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
+      const y = size * (1.5 * r);
+
+      return { key, value, x, y };
+    })
+    .filter(Boolean); // 🔥 enlève les null
+
+  if (pixelCoords.length === 0) return null;
 
   const minX = Math.min(...pixelCoords.map(c => c.x));
   const maxX = Math.max(...pixelCoords.map(c => c.x));
