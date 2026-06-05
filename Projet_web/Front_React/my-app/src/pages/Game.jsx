@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import HexBoard from "../components/HexBoard";
+import Direction from "../components/Direction";
 
 export default function Game() {
   const [board, setBoard] = useState([]);
@@ -87,6 +88,9 @@ export default function Game() {
 
   return (
     <div style={{ padding: 20 }}>
+      {hasSelection && (
+        <Direction onMove={handleMove} />
+      )}
       <h1>Plateau Abalone</h1>
 
       <HexBoard
@@ -95,20 +99,7 @@ export default function Game() {
         onSelect={handleSelect}
       />
 
-      {hasSelection && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Déplacer les billes sélectionnées :</h3>
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button onClick={() => handleMove("NW")}>NW</button>
-            <button onClick={() => handleMove("NE")}>NE</button>
-            <button onClick={() => handleMove("E")}>E</button>
-            <button onClick={() => handleMove("SE")}>SE</button>
-            <button onClick={() => handleMove("SW")}>SW</button>
-            <button onClick={() => handleMove("W")}>W</button>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }

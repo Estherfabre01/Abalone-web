@@ -19,7 +19,7 @@ export function applyMove(board, move) {
     const [nq, nr] = add([q, r], dir);
     const nk = key([nq, nr]);
 
-    newBoard.delete(k);
+    newBoard.set(k, ".");
     newBoard.set(nk, val);
   }
 
