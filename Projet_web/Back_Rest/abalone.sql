@@ -6,7 +6,6 @@ PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS moves;
-DROP TABLE IF EXISTS board_states;
 DROP TABLE IF EXISTS games;
 DROP TABLE IF EXISTS users;
 
@@ -30,11 +29,18 @@ CREATE INDEX idx_users_email ON users(email);
 -- ============================
 CREATE TABLE games (
     id TEXT PRIMARY KEY,
-    player1_id TEXT NOT NULL,
-    player2_id TEXT,
-    status TEXT NOT NULL CHECK(status IN ('waiting', 'in_progress', 'finished')) DEFAULT 'waiting',
-    winner_id TEXT,
-    current_player TEXT, -- joueur dont c'est le tour
+
+    player1_id TEXT NOT NULL,   -- joueur noir
+    player2_id TEXT,            -- joueur blanc
+
+    status TEXT NOT NULL CHECK(status IN ('waiting', 'in_progress', 'finished'))
+        DEFAULT 'waiting',
+
+    winner_id TEXT,             -- gagnant éventuel
+    current_player TEXT,        -- joueur dont c'est le tour (id user)
+    turn_number INTEGER NOT NULL DEFAULT 1,  -- numéro du tour
+    board TEXT NOT NULL,        -- plateau JSON directement dans games
+
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -43,20 +49,9 @@ CREATE TABLE games (
     FOREIGN KEY (current_player) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- ============================
--- TABLE : board_states
--- ============================
-CREATE TABLE board_states (
-    id TEXT PRIMARY KEY,
-    game_id TEXT NOT NULL,
-    turn_number INTEGER NOT NULL,
-    board TEXT NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_board_states_game ON board_states(game_id);
+CREATE INDEX idx_games_player1 ON games(player1_id);
+CREATE INDEX idx_games_player2 ON games(player2_id);
+CREATE INDEX idx_games_current_player ON games(current_player);
 
 -- ============================
 -- TABLE : moves

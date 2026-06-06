@@ -28,7 +28,12 @@ export default function Game() {
 
       console.log("%c[LOAD] Backend response:", "color: cyan", data);
 
-      const parsed = JSON.parse(data.board);
+      const parsed = Array.isArray(data.board)
+      ? data.board
+      : JSON.parse(data.board);
+
+      setBoard(parsed);
+      setCurrentPlayer(data.current_player);
 
       console.log("%c[LOAD] Parsed board:", "color: cyan", parsed);
       console.log("%c[LOAD] Current player =", "color: yellow", data.current_player);

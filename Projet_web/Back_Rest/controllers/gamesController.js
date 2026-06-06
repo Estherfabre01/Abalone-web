@@ -14,58 +14,58 @@ export function createGame(req, res) {
   }
 
   const gameId = crypto.randomUUID();
-  const boardId = crypto.randomUUID();
-
-  // Création de la partie
-  db.prepare(`
-    INSERT INTO games (id, player1_id, player2_id, status, current_player)
-    VALUES (?, ?, ?, 'in_progress', ?)
-  `).run(gameId, req.user.id, opponent_id, req.user.id);
 
   // Plateau initial (Map → Array)
-  const initialBoard = [...getInitialBoard()];
+  const initialBoard = Array.from(getInitialBoard());
 
   db.prepare(`
-    INSERT INTO board_states (id, game_id, turn_number, board)
-    VALUES (?, ?, 1, ?)
-  `).run(boardId, gameId, JSON.stringify(initialBoard));
+    INSERT INTO games (
+      id,
+      player1_id,
+      player2_id,
+      status,
+      current_player,
+      turn_number,
+      board
+    )
+    VALUES (?, ?, ?, 'in_progress', ?, 1, ?)
+  `).run(
+    gameId,
+    req.user.id,
+    opponent_id,
+    req.user.id,                     // player1 commence
+    JSON.stringify(initialBoard)     // board valide
+  );
 
   res.json({ id: gameId });
 }
+
+
 
 
 /**
  * Récupérer une partie par ID
  */
 export function getGame(req, res) {
-  const gameId = req.params.id;
-
-  // Récupérer la partie
   const game = db.prepare(`
-    SELECT id, player1_id, player2_id, status, current_player
+    SELECT *
     FROM games
     WHERE id = ?
-  `).get(gameId);
+  `).get(req.params.id);
 
   if (!game) {
     return res.status(404).json({ error: "Game not found" });
   }
 
-  // Récupérer le dernier plateau
-  const boardState = db.prepare(`
-    SELECT turn_number, board
-    FROM board_states
-    WHERE game_id = ?
-    ORDER BY turn_number DESC
-    LIMIT 1
-  `).get(gameId);
+  // Parse le board AVANT d'envoyer
+  const parsedBoard = JSON.parse(game.board);
 
   res.json({
     ...game,
-    board: boardState ? boardState.board : null,
-    turn_number: boardState ? boardState.turn_number : null
+    board: parsedBoard
   });
 }
+
 
 /**
  * Rejoindre une partie

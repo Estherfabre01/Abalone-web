@@ -5,7 +5,6 @@ import authRoutes from "./routes/auth.js";
 import usersRoutes from "./routes/users.js";
 import gamesRoutes from "./routes/games.js";
 import movesRoutes from "./routes/moves.js";
-import boardRoutes from "./routes/board.js";
 import friendsRoutes from "./routes/friends.js";
 
 const app = express();
@@ -18,7 +17,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/games", gamesRoutes);
 app.use("/api/moves", movesRoutes);
-app.use("/api/board", boardRoutes);
 app.use("/api/friends", friendsRoutes);
 
 app.listen(3000, () => {

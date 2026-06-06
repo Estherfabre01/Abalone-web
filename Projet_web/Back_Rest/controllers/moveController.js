@@ -6,9 +6,11 @@ export function playMove(req, res) {
   const gameId = req.params.id;
   const { marbles, direction } = req.body;
 
-  // 0) Récupérer la partie
+  // 0) Charger la partie
   const game = db.prepare(`
-    SELECT * FROM games WHERE id = ?
+    SELECT *
+    FROM games
+    WHERE id = ?
   `).get(gameId);
 
   if (!game) {
@@ -23,22 +25,11 @@ export function playMove(req, res) {
     });
   }
 
-  // 1) Récupérer le dernier état du plateau
-  const lastBoard = db.prepare(`
-    SELECT * FROM board_states
-    WHERE game_id = ?
-    ORDER BY turn_number DESC
-    LIMIT 1
-  `).get(gameId);
+  // 1) Charger le plateau depuis games.board
+  const boardArray = JSON.parse(game.board);
+  const boardMap = new Map(boardArray);
 
-  if (!lastBoard) {
-    return res.status(404).json({ error: "Board not found" });
-  }
-
-  // 2) Charger la Map
-  const boardMap = new Map(JSON.parse(lastBoard.board));
-
-  // 3) Validation du mouvement
+  // 2) Validation du mouvement
   const validation = isMoveValid(boardMap, { marbles, direction });
 
   if (!validation.valid) {
@@ -48,25 +39,30 @@ export function playMove(req, res) {
     });
   }
 
-  // 4) Appliquer le mouvement
+  // 3) Appliquer le mouvement
   const newBoardMap = applyMove(boardMap, { marbles, direction });
 
-  // 5) Convertir Map → Array pour stockage
+  // 4) Convertir Map → Array
   const newBoardArray = [...newBoardMap];
-  const newTurn = lastBoard.turn_number + 1;
 
-  // 6) Sauvegarder le nouvel état du plateau
+  // 5) Calcul du prochain joueur
+  const nextPlayer =
+    game.current_player === game.player1_id
+      ? game.player2_id
+      : game.player1_id;
+
+  // 6) Sauvegarder dans games
   db.prepare(`
-    INSERT INTO board_states (id, game_id, turn_number, board)
-    VALUES (?, ?, ?, ?)
+    UPDATE games
+    SET board = ?, current_player = ?, turn_number = turn_number + 1
+    WHERE id = ?
   `).run(
-    crypto.randomUUID(),
-    gameId,
-    newTurn,
-    JSON.stringify(newBoardArray)
+    JSON.stringify(newBoardArray),
+    nextPlayer,
+    gameId
   );
 
-  // 7) Sauvegarder le coup joué
+  // 7) Sauvegarder le coup (moves)
   db.prepare(`
     INSERT INTO moves (id, game_id, player_id, from_positions, to_positions)
     VALUES (?, ?, ?, ?, ?)
@@ -78,25 +74,16 @@ export function playMove(req, res) {
     JSON.stringify(direction)
   );
 
-  // 8) Calcul du prochain joueur
-  const nextPlayer =
-    game.current_player === game.player1_id
-      ? game.player2_id
-      : game.player1_id;
-
-  db.prepare(`
-    UPDATE games SET current_player = ? WHERE id = ?
-  `).run(nextPlayer, gameId);
-
-  // 9) Réponse au frontend
+  // 8) Réponse au frontend
   res.json({
     message: "Move played",
-    turn: newTurn,
     board: Object.fromEntries(newBoardMap),
     current_player: nextPlayer,
+    turn: game.turn_number + 1,
     reason: validation.reason
   });
 }
+
 
 
 export function listMoves(req, res) {
