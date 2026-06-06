@@ -67,6 +67,11 @@ export default function Header() {
             <div style={{ fontSize: "12px", opacity: 0.8 }}>
               {user.email}
             </div>
+
+            {/* AJOUT : affichage du user.id */}
+            <div style={{ fontSize: "11px", opacity: 0.6 }}>
+              ID: {user.id}
+            </div>
           </div>
 
           {/* Bouton logout */}

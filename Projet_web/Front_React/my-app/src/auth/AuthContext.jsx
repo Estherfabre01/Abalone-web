@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
-
+    localStorage.setItem("userId", user.id);
     setToken(token);
     setUser(user);
   }

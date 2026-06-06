@@ -6,6 +6,23 @@ export function playMove(req, res) {
   const gameId = req.params.id;
   const { marbles, direction } = req.body;
 
+  // 0) Récupérer la partie
+  const game = db.prepare(`
+    SELECT * FROM games WHERE id = ?
+  `).get(gameId);
+
+  if (!game) {
+    return res.status(404).json({ error: "Game not found" });
+  }
+
+  // Vérifier que c'est bien le tour du joueur
+  if (game.current_player !== req.user.id) {
+    return res.status(403).json({
+      error: "Not your turn",
+      reason: "C'est au tour de l'autre joueur"
+    });
+  }
+
   // 1) Récupérer le dernier état du plateau
   const lastBoard = db.prepare(`
     SELECT * FROM board_states
@@ -15,7 +32,7 @@ export function playMove(req, res) {
   `).get(gameId);
 
   if (!lastBoard) {
-    return res.status(404).json({ error: "Game not found" });
+    return res.status(404).json({ error: "Board not found" });
   }
 
   // 2) Charger la Map
@@ -40,14 +57,13 @@ export function playMove(req, res) {
 
   // 6) Sauvegarder le nouvel état du plateau
   db.prepare(`
-    INSERT INTO board_states (id, game_id, turn_number, board, current_player)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO board_states (id, game_id, turn_number, board)
+    VALUES (?, ?, ?, ?)
   `).run(
     crypto.randomUUID(),
     gameId,
     newTurn,
-    JSON.stringify(newBoardArray),
-    req.user.id
+    JSON.stringify(newBoardArray)
   );
 
   // 7) Sauvegarder le coup joué
@@ -62,14 +78,26 @@ export function playMove(req, res) {
     JSON.stringify(direction)
   );
 
-  // 8) Réponse au frontend
+  // 8) Calcul du prochain joueur
+  const nextPlayer =
+    game.current_player === game.player1_id
+      ? game.player2_id
+      : game.player1_id;
+
+  db.prepare(`
+    UPDATE games SET current_player = ? WHERE id = ?
+  `).run(nextPlayer, gameId);
+
+  // 9) Réponse au frontend
   res.json({
     message: "Move played",
     turn: newTurn,
     board: Object.fromEntries(newBoardMap),
+    current_player: nextPlayer,
     reason: validation.reason
   });
 }
+
 
 export function listMoves(req, res) {
   const moves = db.prepare(`

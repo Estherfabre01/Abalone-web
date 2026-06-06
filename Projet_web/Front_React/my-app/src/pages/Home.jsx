@@ -35,25 +35,60 @@ export default function Home() {
   }
 
   async function createGameWithFriend(friendId) {
-    const token = localStorage.getItem("token");
+  console.log("%c[CREATE] --- Début création de partie ---", "color: cyan; font-weight: bold");
 
-    const res = await fetch("http://localhost:3000/api/games/create", {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  console.log("%c[CREATE] User connecté =", "color: yellow", userId);
+  console.log("%c[CREATE] Token envoyé =", "color: yellow", token);
+  console.log("%c[CREATE] Opponent ID envoyé =", "color: orange", friendId);
+
+  const url = "http://localhost:3000/api/games/create";
+  console.log("%c[CREATE] URL appelée =", "color: lightblue", url);
+
+  const payload = { opponent_id: friendId };
+  console.log("%c[CREATE] Body JSON envoyé =", "color: lightgreen", payload);
+
+  try {
+    console.log("%c[CREATE] Envoi au backend...", "color: lightgreen");
+
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ opponent_id: friendId })
+      body: JSON.stringify(payload)
     });
+
+    console.log("%c[CREATE] Status HTTP =", "color: lightgreen", res.status);
 
     const data = await res.json();
 
+    console.log("%c[CREATE] Réponse backend =", "color: lightgreen", data);
+
+    if (data.error) {
+      console.error("%c[CREATE] ERREUR backend :", "color: red", data.error);
+      alert("Erreur : " + data.error);
+      return;
+    }
+
     if (data.id) {
+      console.log("%c[CREATE] Partie créée avec succès ! ID =", "color: green; font-weight: bold", data.id);
       alert("Partie créée !");
       setShowFriendPicker(false);
       loadGames();
+    } else {
+      console.warn("%c[CREATE] Pas d'ID retourné par le backend", "color: red");
     }
+
+  } catch (err) {
+    console.error("%c[CREATE] Exception attrapée :", "color: red", err);
+    alert("Erreur réseau lors de la création de la partie.");
   }
+}
+
 
   useEffect(() => {
     loadGames();

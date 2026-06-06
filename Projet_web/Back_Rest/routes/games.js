@@ -23,9 +23,6 @@ router.get("/:id", authMiddleware, getGame);
 // ➜ REJOINDRE UNE PARTIE (optionnel)
 router.post("/:id/join", authMiddleware, joinGame);
 
-// ➜ RÉCUPÉRER LE PLATEAU ACTUEL
-router.get("/:id/board", authMiddleware, getBoard);
-
 // ➜ RÉCUPÉRER LE PLATEAU À UN TOUR DONNÉ
 router.get("/:id/board/:turn", authMiddleware, getBoardAtTurn);
 export default router;

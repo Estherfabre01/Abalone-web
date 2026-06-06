@@ -34,11 +34,13 @@ CREATE TABLE games (
     player2_id TEXT,
     status TEXT NOT NULL CHECK(status IN ('waiting', 'in_progress', 'finished')) DEFAULT 'waiting',
     winner_id TEXT,
+    current_player TEXT, -- joueur dont c'est le tour
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (current_player) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ============================
@@ -49,12 +51,12 @@ CREATE TABLE board_states (
     game_id TEXT NOT NULL,
     turn_number INTEGER NOT NULL,
     board TEXT NOT NULL,
-    current_player TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
-    FOREIGN KEY (current_player) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_board_states_game ON board_states(game_id);
 
 -- ============================
 -- TABLE : moves
@@ -71,6 +73,9 @@ CREATE TABLE moves (
     FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_moves_game ON moves(game_id);
+CREATE INDEX idx_moves_player ON moves(player_id);
 
 -- ============================
 -- TABLE : friends
