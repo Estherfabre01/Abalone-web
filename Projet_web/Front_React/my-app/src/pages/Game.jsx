@@ -6,49 +6,45 @@ export default function Game() {
   const [board, setBoard] = useState([]);
   const [selected, setSelected] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [playerColor, setPlayerColor] = useState(null);
 
   const userId = localStorage.getItem("userId");
 
   // ============================
-  // LOAD BOARD
+  // LOAD GAME
   // ============================
-  async function loadBoard() {
+  async function loadGame() {
     try {
       const token = localStorage.getItem("token");
       const gameId = window.location.pathname.split("/").pop();
 
-      console.log("%c[LOAD] Fetching board...", "color: cyan");
-      console.log("[LOAD] gameId =", gameId);
+      console.log("%c[LOAD] Fetching game...", "color: cyan");
 
       const res = await fetch(`http://localhost:3000/api/games/${gameId}`, {
         headers: { Authorization: "Bearer " + token }
       });
 
       const data = await res.json();
-
       console.log("%c[LOAD] Backend response:", "color: cyan", data);
 
-      const parsed = Array.isArray(data.board)
-      ? data.board
-      : JSON.parse(data.board);
-
-      setBoard(parsed);
+      // board est déjà un array
+      setBoard(data.board);
       setCurrentPlayer(data.current_player);
+      setPlayerColor(data.player_color);
 
-      console.log("%c[LOAD] Parsed board:", "color: cyan", parsed);
+      console.log("%c[LOAD] Parsed board:", "color: cyan", data.board);
       console.log("%c[LOAD] Current player =", "color: yellow", data.current_player);
+      console.log("%c[LOAD] Your color =", "color: magenta", data.player_color);
 
-      setBoard(parsed);
-      setCurrentPlayer(data.current_player);
     } catch (err) {
-      console.error("[LOAD] ERROR loading board:", err);
+      console.error("[LOAD] ERROR loading game:", err);
       setBoard([]);
     }
   }
 
   useEffect(() => {
     console.log("%c[INIT] Game component mounted", "color: green");
-    loadBoard();
+    loadGame();
   }, []);
 
   // ============================
@@ -59,40 +55,32 @@ export default function Game() {
 
     const cell = board.find(([k]) => k === key)?.[1];
     console.log("[SELECT] Cell content =", cell);
-    console.log("[SELECT] Current player =", currentPlayer, "User =", userId);
+    console.log("[SELECT] Player color =", playerColor);
 
     // Empêcher de sélectionner les billes ennemies
-    if (cell === "B" && currentPlayer !== userId) {
-      console.warn("[SELECT] Refus : tu ne peux pas jouer les billes B");
-      return;
-    }
-    if (cell === "W" && currentPlayer !== userId) {
-      console.warn("[SELECT] Refus : tu ne peux pas jouer les billes W");
+    if (cell !== playerColor) {
+      console.warn("[SELECT] Refus : tu ne joues pas cette couleur");
       return;
     }
 
     const clean = key.trim();
 
     if (!selected) {
-      console.log("[SELECT] Première sélection =", clean);
       setSelected([clean]);
       return;
     }
 
     if (selected.includes(clean)) {
-      console.log("[SELECT] Deselection de", clean);
       const next = selected.filter(k => k !== clean);
       setSelected(next.length ? next : null);
       return;
     }
 
     if (selected.length >= 3) {
-      console.log("[SELECT] Reset sélection → nouvelle =", clean);
       setSelected([clean]);
       return;
     }
 
-    console.log("[SELECT] Ajout à la sélection =", clean);
     setSelected([...selected, clean]);
   }
 
@@ -108,8 +96,6 @@ export default function Game() {
     const marbles = selected.map(k => k.split(",").map(Number));
 
     console.log("%c[MOVE] Sending move...", "color: lightgreen");
-    console.log("[MOVE] Marbles =", marbles);
-    console.log("[MOVE] Direction =", direction);
 
     const res = await fetch(`http://localhost:3000/api/moves/${gameId}/move`, {
       method: "POST",
@@ -121,7 +107,6 @@ export default function Game() {
     });
 
     const data = await res.json();
-
     console.log("%c[MOVE] Backend response:", "color: lightgreen", data);
 
     if (data.error) {
@@ -135,16 +120,13 @@ export default function Game() {
         ? data.board
         : Object.entries(data.board);
 
-      console.log("%c[MOVE] Updated board:", "color: lightgreen", nextBoard);
       setBoard(nextBoard);
     }
 
     if (data.current_player) {
-      console.log("%c[MOVE] Next player =", "color: yellow", data.current_player);
       setCurrentPlayer(data.current_player);
     }
 
-    console.log("%c[MOVE] Reset selection", "color: gray");
     setSelected(null);
   }
 
@@ -154,6 +136,7 @@ export default function Game() {
   return (
     <div style={{ padding: 20 }}>
       <h2>Joueur courant : {currentPlayer}</h2>
+      <h3>Ta couleur : {playerColor}</h3>
 
       {selected && currentPlayer === userId && (
         <Direction onMove={handleMove} />

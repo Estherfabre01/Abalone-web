@@ -47,24 +47,44 @@ export function createGame(req, res) {
  * Récupérer une partie par ID
  */
 export function getGame(req, res) {
+  const gameId = req.params.id;
+
+  // Charger la partie
   const game = db.prepare(`
-    SELECT *
+    SELECT id, player1_id, player2_id, status, current_player, turn_number, board
     FROM games
     WHERE id = ?
-  `).get(req.params.id);
+  `).get(gameId);
 
   if (!game) {
     return res.status(404).json({ error: "Game not found" });
   }
 
-  // Parse le board AVANT d'envoyer
-  const parsedBoard = JSON.parse(game.board);
+  // Parser le plateau (toujours un JSON valide)
+  let parsedBoard;
+  try {
+    parsedBoard = JSON.parse(game.board);
+  } catch (err) {
+    return res.status(500).json({ error: "Invalid board format" });
+  }
 
+  // Déterminer la couleur du joueur connecté
+  const playerColor =
+    req.user.id === game.player1_id ? "B" : "W";
+
+  // Réponse complète
   res.json({
-    ...game,
-    board: parsedBoard
+    id: game.id,
+    player1_id: game.player1_id,
+    player2_id: game.player2_id,
+    status: game.status,
+    current_player: game.current_player,
+    turn_number: game.turn_number,
+    board: parsedBoard,
+    player_color: playerColor
   });
 }
+
 
 
 /**
