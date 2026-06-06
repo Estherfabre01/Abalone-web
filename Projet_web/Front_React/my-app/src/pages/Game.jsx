@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import HexBoard from "../components/HexBoard";
 import Direction from "../components/Direction";
+import { Link } from "react-router-dom";
 import "../global.css";
 
 export default function Game() {
@@ -19,6 +20,9 @@ export default function Game() {
 
   const [player1Name, setPlayer1Name] = useState("");
   const [player2Name, setPlayer2Name] = useState("");
+
+  const [status, setStatus] = useState("playing");
+  const [winnerId, setWinnerId] = useState(null);
 
   const userId = localStorage.getItem("userId");
 
@@ -49,6 +53,9 @@ export default function Game() {
       setPlayer1Name(data.player1_name || "Joueur 1");
       setPlayer2Name(data.player2_name || "Joueur 2");
 
+      setStatus(data.status);
+      setWinnerId(data.winner_id || null);
+
     } catch (err) {
       console.error("[LOAD] ERROR loading game:", err);
       setBoard([]);
@@ -57,14 +64,18 @@ export default function Game() {
 
   useEffect(() => {
     loadGame();
-    const interval = setInterval(loadGame, 1500);
-    return () => clearInterval(interval);
-  }, []);
+    if (status !== "finished") {
+      const interval = setInterval(loadGame, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [status]);
 
   // ============================
   // SELECT MARBLE
   // ============================
   function handleSelect(key) {
+    if (status === "finished") return;
+
     const cell = board.find(([k]) => k === key)?.[1];
     if (cell !== playerColor) return;
 
@@ -86,7 +97,7 @@ export default function Game() {
   // SEND MOVE
   // ============================
   async function handleMove(direction) {
-    if (!selected?.length) return;
+    if (!selected?.length || status === "finished") return;
 
     const token = localStorage.getItem("token");
     const gameId = window.location.pathname.split("/").pop();
@@ -103,11 +114,15 @@ export default function Game() {
 
     const data = await res.json();
 
-    if (data.error) {
-      alert(data.reason || data.error);
+    // Si la partie est finie
+    if (data.message === "Game finished") {
+      setBoard(Object.entries(data.board));
+      setStatus("finished");
+      setWinnerId(data.winner_id);
       return;
     }
 
+    // Sinon, mise à jour normale
     if (data.board) {
       const nextBoard = Array.isArray(data.board)
         ? data.board
@@ -125,6 +140,11 @@ export default function Game() {
   const isYourTurn = currentPlayer === userId;
   const currentPlayerName =
     currentPlayer === player1Id ? player1Name : player2Name;
+
+  const winnerName =
+    winnerId === player1Id ? player1Name :
+    winnerId === player2Id ? player2Name :
+    null;
 
   // ============================
   // RENDER
@@ -147,9 +167,18 @@ export default function Game() {
 
           <div>
             <h2 className="game-header-title">
-              {isYourTurn ? "À toi de jouer" : `Tour de ${currentPlayerName}`}
+              {status === "finished"
+                ? `Partie terminée`
+                : isYourTurn
+                ? "À toi de jouer"
+                : `Tour de ${currentPlayerName}`}
             </h2>
-            <p className="game-header-sub">Ta couleur : {playerColor}</p>
+
+            <p className="game-header-sub">
+              {status === "finished"
+                ? `Gagnant : ${winnerName}`
+                : `Ta couleur : ${playerColor}`}
+            </p>
           </div>
         </div>
 
@@ -167,12 +196,26 @@ export default function Game() {
 
       </div>
 
+      {/* POPUP DE FIN DE PARTIE */}
+      {status === "finished" && (
+        <div className="overlay">
+          <div className="popup">
+            <h2>🎉 Victoire !</h2>
+            <p>{winnerName} a gagné la partie.</p>
+
+            <Link to="/home" className="btn" style={{ marginTop: 20 }}>
+              Retour au menu
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* CENTRE : DIRECTIONS + PLATEAU */}
       <div className="game-center">
 
         <Direction
           onMove={handleMove}
-          disabled={!isYourTurn || !selected}
+          disabled={!isYourTurn || !selected || status === "finished"}
         />
 
         <HexBoard

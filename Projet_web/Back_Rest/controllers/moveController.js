@@ -25,11 +25,11 @@ export function playMove(req, res) {
     });
   }
 
-  // 1) Charger le plateau depuis games.board
+  // 1) Charger le plateau
   const boardArray = JSON.parse(game.board);
   const boardMap = new Map(boardArray);
 
-  // 2) Validation du mouvement
+  // 2) Validation
   const validation = isMoveValid(boardMap, { marbles, direction });
 
   if (!validation.valid) {
@@ -41,27 +41,68 @@ export function playMove(req, res) {
 
   // 3) Appliquer le mouvement
   const newBoardMap = applyMove(boardMap, { marbles, direction });
-
-  // 4) Convertir Map → Array
   const newBoardArray = [...newBoardMap];
 
-  // 5) Mise à jour du score si poussée hors plateau
-  if (validation.reason === "Poussée hors plateau") {
+  // 4) Mise à jour du score si poussée hors plateau
+  let updatedScoreP1 = null;
+  let updatedScoreP2 = null;
 
+  if (validation.reason === "Poussée hors plateau") {
     const isPlayer1 = game.current_player === game.player1_id;
 
-    db.prepare(`
+    const result = db.prepare(`
       UPDATE game_score
       SET 
         score_player1 = score_player1 + ?,
         score_player2 = score_player2 + ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE game_id = ?
-    `).run(
+      RETURNING score_player1, score_player2
+    `).get(
       isPlayer1 ? 1 : 0,
       isPlayer1 ? 0 : 1,
       gameId
     );
+
+    updatedScoreP1 = result.score_player1;
+    updatedScoreP2 = result.score_player2;
+  }
+
+  // 5) Vérifier si un joueur a gagné (score = 6)
+  const score = updatedScoreP1 !== null
+    ? { p1: updatedScoreP1, p2: updatedScoreP2 }
+    : db.prepare(`
+        SELECT score_player1 AS p1, score_player2 AS p2
+        FROM game_score
+        WHERE game_id = ?
+      `).get(gameId);
+
+  let winnerId = null;
+
+  if (score.p1 >= 6) winnerId = game.player1_id;
+  if (score.p2 >= 6) winnerId = game.player2_id;
+
+  if (winnerId) {
+    // Mettre fin à la partie
+    db.prepare(`
+      UPDATE games
+      SET 
+        board = ?,
+        status = 'finished',
+        winner_id = ?
+      WHERE id = ?
+    `).run(
+      JSON.stringify(newBoardArray),
+      winnerId,
+      gameId
+    );
+
+    return res.json({
+      message: "Game finished",
+      winner_id: winnerId,
+      board: Object.fromEntries(newBoardMap),
+      reason: validation.reason
+    });
   }
 
   // 6) Calcul du prochain joueur
@@ -70,7 +111,7 @@ export function playMove(req, res) {
       ? game.player2_id
       : game.player1_id;
 
-  // 7) Sauvegarder dans games
+  // 7) Sauvegarder le nouvel état
   db.prepare(`
     UPDATE games
     SET board = ?, current_player = ?, turn_number = turn_number + 1
@@ -81,7 +122,7 @@ export function playMove(req, res) {
     gameId
   );
 
-  // 8) Sauvegarder le coup (moves)
+  // 8) Sauvegarder le coup
   db.prepare(`
     INSERT INTO moves (id, game_id, player_id, from_positions, to_positions)
     VALUES (?, ?, ?, ?, ?)
@@ -93,7 +134,7 @@ export function playMove(req, res) {
     JSON.stringify(direction)
   );
 
-  // 9) Réponse au frontend
+  // 9) Réponse normale
   res.json({
     message: "Move played",
     board: Object.fromEntries(newBoardMap),
@@ -102,6 +143,7 @@ export function playMove(req, res) {
     reason: validation.reason
   });
 }
+
 
 
 
