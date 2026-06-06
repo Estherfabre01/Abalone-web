@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "../global.css";
 
 export default function Friends() {
   const [username, setUsername] = useState("");
@@ -38,7 +39,7 @@ export default function Friends() {
     loadFriends();
   }
 
-  async function acceptRequest(requestId) {
+  async function acceptRequest(id) {
     const token = localStorage.getItem("token");
 
     await fetch("http://localhost:3000/api/friends/accept", {
@@ -47,13 +48,13 @@ export default function Friends() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ request_id: requestId })
+      body: JSON.stringify({ request_id: id })
     });
 
     loadFriends();
   }
 
-  async function rejectRequest(requestId) {
+  async function rejectRequest(id) {
     const token = localStorage.getItem("token");
 
     await fetch("http://localhost:3000/api/friends/reject", {
@@ -62,7 +63,7 @@ export default function Friends() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({ request_id: requestId })
+      body: JSON.stringify({ request_id: id })
     });
 
     loadFriends();
@@ -73,162 +74,67 @@ export default function Friends() {
   }, []);
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>👥 Amis</h2>
+    <div className="friends-container">
 
-      <div style={styles.card}>
-        <h3 style={styles.sectionTitle}>Liste d'amis</h3>
+      <h3 className="friends-section-title">👥 Amis</h3>
+
+      <div className="friends-card">
+        <h4 className="friends-section-title">Liste d'amis</h4>
         {friends.length === 0 ? (
-          <p style={styles.empty}>Aucun ami pour le moment.</p>
+          <p className="friends-empty">Aucun ami.</p>
         ) : (
-          <ul style={styles.list}>
+          <ul className="friends-list">
             {friends.map((f) => (
-              <li key={f.id} style={styles.listItem}>
-                <strong>{f.username}</strong>
-                <span style={styles.email}>{f.email}</span>
+              <li key={f.id} className="friends-item">
+                {f.username}
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      <div style={styles.card}>
-        <h3 style={styles.sectionTitle}>📥 Demandes reçues</h3>
-        <ul style={styles.list}>
+      <div className="friends-card">
+        <h4 className="friends-section-title">Reçues</h4>
+        <ul className="friends-list">
           {received.map((r) => (
-            <li key={r.id} style={styles.listItem}>
-              <strong>{r.sender_username}</strong>
-
-              <div style={styles.actions}>
-                <button style={styles.acceptBtn} onClick={() => acceptRequest(r.id)}>
-                  Accepter
-                </button>
-
-                <button style={styles.rejectBtn} onClick={() => rejectRequest(r.id)}>
-                  Refuser
-                </button>
+            <li key={r.id} className="friends-item">
+              {r.sender_username}
+              <div className="friends-actions">
+                <button className="btn-accept" onClick={() => acceptRequest(r.id)}>OK</button>
+                <button className="btn-reject" onClick={() => rejectRequest(r.id)}>X</button>
               </div>
             </li>
           ))}
         </ul>
       </div>
 
-      <div style={styles.card}>
-        <h3 style={styles.sectionTitle}>📤 Demandes envoyées</h3>
-        <ul style={styles.list}>
+      <div className="friends-card">
+        <h4 className="friends-section-title">Envoyées</h4>
+        <ul className="friends-list">
           {sent.map((s) => (
-            <li key={s.id} style={styles.listItem}>
+            <li key={s.id} className="friends-item">
               {s.receiver_username}
             </li>
           ))}
         </ul>
       </div>
 
-      <div style={styles.card}>
-        <h3 style={styles.sectionTitle}>Ajouter un ami</h3>
+      <div className="friends-card">
+        <h4 className="friends-section-title">Ajouter</h4>
 
         <input
-          type="text"
+          className="friends-input"
           placeholder="Nom d'utilisateur"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={styles.input}
         />
 
-        <button onClick={sendRequest} style={styles.primaryBtn}>
-          Envoyer une demande d’ami
+        <button className="friends-primary-btn" onClick={sendRequest}>
+          Envoyer
         </button>
 
-        {message && (
-          <pre style={styles.responseBox}>{message}</pre>
-        )}
+        {message && <pre className="friends-response">{message}</pre>}
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: 20,
-    maxWidth: 600,
-    margin: "0 auto",
-    fontFamily: "Arial, sans-serif"
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: 20
-  },
-  card: {
-    background: "white",
-    padding: 20,
-    borderRadius: 10,
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-    marginBottom: 20
-  },
-  sectionTitle: {
-    marginBottom: 10
-  },
-  list: {
-    listStyle: "none",
-    padding: 0
-  },
-  listItem: {
-    padding: "10px 0",
-    borderBottom: "1px solid #eee",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  email: {
-    color: "#777",
-    marginLeft: 10
-  },
-  empty: {
-    color: "#888",
-    fontStyle: "italic"
-  },
-  actions: {
-    display: "flex",
-    gap: 10
-  },
-  acceptBtn: {
-    padding: "6px 12px",
-    background: "#2ecc71",
-    color: "white",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer"
-  },
-  rejectBtn: {
-    padding: "6px 12px",
-    background: "#e74c3c",
-    color: "white",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer"
-  },
-  input: {
-    padding: 10,
-    width: "100%",
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    marginBottom: 10
-  },
-  primaryBtn: {
-    padding: 10,
-    width: "100%",
-    background: "#3498db",
-    color: "white",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontWeight: "bold"
-  },
-  responseBox: {
-    marginTop: 15,
-    background: "#f4f4f4",
-    padding: 10,
-    borderRadius: 6,
-    fontSize: 14
-  }
-};

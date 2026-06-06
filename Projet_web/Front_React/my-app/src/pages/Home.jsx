@@ -7,6 +7,7 @@ export default function Home() {
   const [games, setGames] = useState([]);
   const [friends, setFriends] = useState([]);
   const [showFriendPicker, setShowFriendPicker] = useState(false);
+  const [showFriendsMenu, setShowFriendsMenu] = useState(false);
 
   async function loadGames() {
     const token = localStorage.getItem("token");
@@ -70,6 +71,23 @@ export default function Home() {
 
       <Header />
 
+      {/* Barre sous le header */}
+      <div className="friends-bar">
+        <button
+          className="friends-toggle-btn"
+          onClick={() => setShowFriendsMenu(!showFriendsMenu)}
+        >
+          Amis
+        </button>
+      </div>
+
+      {/* Menu déroulant */}
+      {showFriendsMenu && (
+        <div className="friends-dropdown">
+          <Friends />
+        </div>
+      )}
+
       <div className="home-main">
 
         {/* Zone centrale */}
@@ -129,11 +147,6 @@ export default function Home() {
               </li>
             ))}
           </ul>
-        </div>
-
-        {/* Sidebar amis */}
-        <div className="home-sidebar">
-          <Friends />
         </div>
 
       </div>
