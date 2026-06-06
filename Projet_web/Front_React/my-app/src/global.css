@@ -99,3 +99,169 @@ html, body, #root {
   border-color: var(--black);
   background: #fffdf8; /* léger crème cute */
 }
+
+/* === LAYOUT HOME === */
+
+.home-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--cream);
+}
+
+.home-main {
+  display: flex;
+  flex: 1;
+}
+
+.home-center {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.home-sidebar {
+  width: 260px;
+  border-left: 1px solid var(--black);
+  padding: 20px;
+  background: var(--white);
+  overflow-y: auto;
+}
+
+/* === BOUTONS === */
+
+.btn-primary {
+  padding: 10px 16px;
+  background: var(--black);
+  color: var(--cream);
+  border: 1px solid var(--black);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--btn-bg-hover);
+}
+
+.btn-small {
+  margin-left: 10px;
+  padding: 4px 8px;
+  background: var(--black);
+  color: var(--cream);
+  border: 1px solid var(--black);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-small:hover {
+  background: var(--btn-bg-hover);
+}
+
+/* === POPUP === */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup {
+  background: var(--white);
+  padding: 20px;
+  border: 1px solid var(--black);
+  width: 300px;
+  text-align: center;
+}
+
+/* === LISTES === */
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.list li {
+  margin-bottom: 10px;
+}
+
+/* === HEADER === */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  background: var(--white);
+  border-bottom: 1px solid var(--black);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.header-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--black);
+}
+
+/* === USER BOX === */
+
+.header-userbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--black);
+  background: var(--cream);
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--cream);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.header-userinfo {
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.header-userinfo div:first-child {
+  font-weight: bold;
+}
+
+.header-logout {
+  padding: 6px 12px;
+  background: var(--black);
+  color: var(--cream);
+  border: 1px solid var(--black);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.header-logout:hover {
+  background: var(--btn-bg-hover);
+}

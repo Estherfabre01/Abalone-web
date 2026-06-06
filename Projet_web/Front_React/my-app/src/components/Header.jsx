@@ -1,96 +1,48 @@
 import { useAuth } from "../auth/AuthContext";
+import "../global.css";
 
 export default function Header() {
   const { user, logout } = useAuth();
 
   return (
-    <header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "15px 25px",
-        background: "linear-gradient(90deg, #4a90e2, #6a5acd)",
-        color: "white",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-        fontFamily: "Arial, sans-serif"
-      }}
-    >
+    <header className="header">
+
       {/* Logo + Titre */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/833/833472.png"
-          alt="logo"
-          style={{ width: "40px", height: "40px" }}
-        />
-        <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "bold" }}>
-          AB.io
-        </h1>
+      <div className="header-left">
+        <svg
+          className="header-logo"
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <polygon
+            points="50 5, 93 27.5, 93 72.5, 50 95, 7 72.5, 7 27.5"
+            fill="none"
+            stroke="black"
+            strokeWidth="6"
+          />
+        </svg>
+
+        <h1 className="header-title">ABALio</h1>
       </div>
 
       {/* Profil utilisateur */}
       {user && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            background: "rgba(255,255,255,0.15)",
-            backdropFilter: "blur(4px)"
-          }}
-        >
-          {/* Avatar rond */}
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "white",
-              color: "#4a90e2",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              fontWeight: "bold",
-              fontSize: "18px"
-            }}
-          >
+        <div className="header-userbox">
+
+          {/* Avatar */}
+          <div className="header-avatar">
             {user.username.charAt(0).toUpperCase()}
           </div>
 
-          {/* Infos user */}
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontWeight: "bold", fontSize: "14px" }}>
-              {user.username}
-            </div>
-            <div style={{ fontSize: "12px", opacity: 0.8 }}>
-              {user.email}
-            </div>
-
-            {/* AJOUT : affichage du user.id */}
-            <div style={{ fontSize: "11px", opacity: 0.6 }}>
-              ID: {user.id}
-            </div>
+          {/* Infos */}
+          <div className="header-userinfo">
+            <div>{user.username}</div>
+            <div>{user.email}</div>
+            <div>ID: {user.id}</div>
           </div>
 
-          {/* Bouton logout */}
-          <button
-            onClick={logout}
-            style={{
-              marginLeft: "10px",
-              padding: "6px 12px",
-              background: "#ff4d4d",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              transition: "0.2s"
-            }}
-            onMouseOver={(e) => (e.target.style.background = "#e63939")}
-            onMouseOut={(e) => (e.target.style.background = "#ff4d4d")}
-          >
+          {/* Logout */}
+          <button className="header-logout" onClick={logout}>
             Déconnexion
           </button>
         </div>
