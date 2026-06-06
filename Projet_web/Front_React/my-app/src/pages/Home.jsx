@@ -3,6 +3,8 @@ import Header from "../components/Header";
 import Friends from "../components/Friends";
 import "../global.css";
 
+const API_URL = "http://192.168.1.11:3000";
+
 export default function Home() {
   const [games, setGames] = useState([]);
   const [friends, setFriends] = useState([]);
@@ -12,7 +14,7 @@ export default function Home() {
   async function loadGames() {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:3000/api/games", {
+    const res = await fetch(`${API_URL}/api/games`, {
       headers: { Authorization: "Bearer " + token }
     });
 
@@ -23,7 +25,7 @@ export default function Home() {
   async function loadFriends() {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:3000/api/friends", {
+    const res = await fetch(`${API_URL}/api/friends`, {
       headers: { Authorization: "Bearer " + token }
     });
 
@@ -39,7 +41,7 @@ export default function Home() {
   async function createGameWithFriend(friendId) {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:3000/api/games/create", {
+    const res = await fetch(`${API_URL}/api/games/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -19,6 +19,6 @@ app.use("/api/games", gamesRoutes);
 app.use("/api/moves", movesRoutes);
 app.use("/api/friends", friendsRoutes);
 
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0",  () => {
   console.log("API en ligne sur http://localhost:3000");
 });

@@ -4,7 +4,7 @@ import HexBoard from "../components/HexBoard";
 import Direction from "../components/Direction";
 import { Link } from "react-router-dom";
 import "../global.css";
-
+const API_URL = "http://192.168.1.11:3000";
 export default function Game() {
   const [board, setBoard] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -34,7 +34,7 @@ export default function Game() {
       const token = localStorage.getItem("token");
       const gameId = window.location.pathname.split("/").pop();
 
-      const res = await fetch(`http://localhost:3000/api/games/${gameId}`, {
+      const res = await fetch(`${API_URL}/api/games/${gameId}`, {
         headers: { Authorization: "Bearer " + token }
       });
 
@@ -103,7 +103,7 @@ export default function Game() {
     const gameId = window.location.pathname.split("/").pop();
     const marbles = selected.map(k => k.split(",").map(Number));
 
-    const res = await fetch(`http://localhost:3000/api/moves/${gameId}/move`, {
+    const res = await fetch(`${API_URL}/api/moves/${gameId}/move`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
