@@ -425,7 +425,6 @@ html, body, #root {
 /* === GAME LAYOUT === */
 
 .game-container {
-  padding: 20px;
   text-align: center;
 }
 
@@ -497,3 +496,135 @@ html, body, #root {
 .direction-btn:hover {
   background: var(--btn-bg-hover);
 }
+
+/* === FULLSCREEN GAME === */
+.game-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+}
+
+/* === HEADER === */
+.game-header {
+  width: 100%;
+  padding: 15px 25px;
+  border-bottom: 1px solid var(--black);
+  background: var(--white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.turn-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.turn-green {
+  background: #4caf50;
+  box-shadow: 0 0 6px #4caf50;
+}
+
+.turn-red {
+  background: #e53935;
+  box-shadow: 0 0 6px #e53935;
+}
+
+.game-header-title {
+  margin: 0;
+}
+
+.game-header-sub {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* === SCORE === */
+.game-score-box {
+  display: flex;
+  gap: 20px;
+}
+
+.game-score-item {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === CENTRE === */
+.game-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === HEX BOARD === */
+.hex-board {
+  background: transparent;
+  border: none;
+}
+
+/* === DIRECTIONS === */
+.direction-wrapper {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.direction-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* === ACCORDÉONS === */
+
+.friends-accordion {
+  margin-bottom: 15px;
+  border: 1px solid var(--black);
+  background: var(--white);
+}
+
+.friends-accordion-btn {
+  width: 100%;
+  text-align: left;
+  padding: 12px 15px;
+  background: var(--cream);
+  border: none;
+  border-bottom: 1px solid var(--black);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.friends-accordion-btn:hover {
+  background: #e9e3d6;
+}
+
+.friends-accordion-content {
+  padding: 15px;
+}
+
+/* === NOMS PLUS VISIBLES === */
+
+.friends-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.friends-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+

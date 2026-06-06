@@ -90,14 +90,21 @@ export function getGame(req, res) {
     WHERE game_id = ?
   `).get(gameId);
 
-  // 3) Déterminer la couleur du joueur courant
+  // 3) Charger les noms des joueurs
+  const p1 = db.prepare(`SELECT username FROM users WHERE id = ?`).get(game.player1_id);
+  const p2 = db.prepare(`SELECT username FROM users WHERE id = ?`).get(game.player2_id);
+
+  const player1Name = p1?.username || "Joueur 1";
+  const player2Name = p2?.username || "Joueur 2";
+
+  // 4) Déterminer la couleur du joueur connecté
   const userId = req.user.id;
   let playerColor = null;
 
   if (userId === game.player1_id) playerColor = "B"; // Noir
   if (userId === game.player2_id) playerColor = "W"; // Blanc
 
-  // 4) Réponse structurée
+  // 5) Réponse structurée
   res.json({
     id: game.id,
     board: JSON.parse(game.board),
@@ -109,12 +116,15 @@ export function getGame(req, res) {
     // joueurs
     player1_id: game.player1_id,
     player2_id: game.player2_id,
+    player1_name: player1Name,
+    player2_name: player2Name,
 
     // score
     score_player1: score?.score_player1 ?? 0,
     score_player2: score?.score_player2 ?? 0
   });
 }
+
 
 
 

@@ -1,4 +1,5 @@
 import { useAuth } from "../auth/AuthContext";
+import { Link } from "react-router-dom";
 import "../global.css";
 
 export default function Header() {
@@ -7,8 +8,8 @@ export default function Header() {
   return (
     <header className="header">
 
-      {/* Logo + Titre */}
-      <div className="header-left">
+      {/* Logo + Titre cliquables */}
+      <Link to="/home" className="header-left" style={{ textDecoration: "none", color: "inherit" }}>
         <svg
           className="header-logo"
           viewBox="0 0 100 100"
@@ -23,7 +24,7 @@ export default function Header() {
         </svg>
 
         <h1 className="header-title">ABALio</h1>
-      </div>
+      </Link>
 
       {/* Profil utilisateur */}
       {user && (
@@ -38,7 +39,6 @@ export default function Header() {
           <div className="header-userinfo">
             <div>{user.username}</div>
             <div>{user.email}</div>
-            <div>ID: {user.id}</div>
           </div>
 
           {/* Logout */}
