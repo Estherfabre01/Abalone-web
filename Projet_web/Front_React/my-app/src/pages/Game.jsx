@@ -43,8 +43,14 @@ export default function Game() {
   }
 
   useEffect(() => {
-    console.log("%c[INIT] Game component mounted", "color: green");
+  console.log("%c[INIT] Game component mounted", "color: green");
+  loadGame();
+
+  const interval = setInterval(() => {
     loadGame();
+  }, 1500);
+
+  return () => clearInterval(interval);
   }, []);
 
   // ============================
