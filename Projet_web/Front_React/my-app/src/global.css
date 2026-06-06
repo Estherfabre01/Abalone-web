@@ -421,3 +421,79 @@ html, body, #root {
   padding: 15px;
   z-index: 20;
 }
+
+/* === GAME LAYOUT === */
+
+.game-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.game-info {
+  margin-bottom: 20px;
+}
+
+.game-score {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--black);
+  background: var(--white);
+  display: inline-block;
+}
+
+/* === HEX BOARD === */
+
+.hex-board {
+  background: transparent;
+  border: none;
+  margin: 20px auto;
+  display: block;
+}
+
+/* === HEX CELL === */
+
+.hex-cell {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.hex-cell:hover {
+  opacity: 0.8;
+}
+
+.hex-marble-black {
+  fill: var(--black);
+}
+
+.hex-marble-white {
+  fill: var(--white);
+  stroke: var(--black);
+  stroke-width: 2;
+}
+
+.hex-selected {
+  stroke: red;
+  stroke-width: 4;
+}
+
+/* === DIRECTION BUTTONS === */
+
+.direction-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.direction-btn {
+  padding: 8px 14px;
+  background: var(--black);
+  color: var(--cream);
+  border: 1px solid var(--black);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.direction-btn:hover {
+  background: var(--btn-bg-hover);
+}

@@ -1,4 +1,5 @@
 import HexCell from "./HexCell";
+import "../global.css";
 
 export default function HexBoard({ board, selectedKey, onSelect }) {
   if (!Array.isArray(board)) return null;
@@ -7,22 +8,17 @@ export default function HexBoard({ board, selectedKey, onSelect }) {
 
   const pixelCoords = board
     .map(([key, value]) => {
-      if (!key || typeof key !== "string" || !key.includes(",")) {
-        return null; 
-      }
+      if (!key.includes(",")) return null;
 
       const [q, r] = key.split(",").map(Number);
-
-      if (Number.isNaN(q) || Number.isNaN(r)) {
-        return null; // ignore les coordonnées invalides
-      }
+      if (Number.isNaN(q) || Number.isNaN(r)) return null;
 
       const x = size * (Math.sqrt(3) * q + (Math.sqrt(3) / 2) * r);
       const y = size * (1.5 * r);
 
       return { key, value, x, y };
     })
-    .filter(Boolean); // enlève les null
+    .filter(Boolean);
 
   if (pixelCoords.length === 0) return null;
 
@@ -31,26 +27,22 @@ export default function HexBoard({ board, selectedKey, onSelect }) {
   const minY = Math.min(...pixelCoords.map(c => c.y));
   const maxY = Math.max(...pixelCoords.map(c => c.y));
 
-  const width = 900;
-  const height = 700;
+  const width = 600;
+  const height = 400;
 
   const offsetX = width / 2 - (minX + maxX) / 2;
   const offsetY = height / 2 - (minY + maxY) / 2;
 
-  function handleClick(key) {
-    onSelect(key);
-  }
-
   return (
-    <svg width={width} height={height} style={{ background: "#ddd" }}>
+    <svg width={width} height={height} className="hex-board">
       {pixelCoords.map(({ key, value, x, y }) => (
         <HexCell
           key={key}
           x={x + offsetX}
           y={y + offsetY}
           value={value}
-          selected={Array.isArray(selectedKey) && selectedKey.includes(key)}
-          onClick={() => handleClick(key)}
+          selected={selectedKey?.includes(key)}
+          onClick={() => onSelect(key)}
         />
       ))}
     </svg>

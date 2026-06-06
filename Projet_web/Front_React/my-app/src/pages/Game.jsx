@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import HexBoard from "../components/HexBoard";
 import Direction from "../components/Direction";
+import "../global.css";
 
 export default function Game() {
   const [board, setBoard] = useState([]);
@@ -15,9 +16,6 @@ export default function Game() {
 
   const userId = localStorage.getItem("userId");
 
-  // ============================
-  // LOAD GAME
-  // ============================
   async function loadGame() {
     try {
       const token = localStorage.getItem("token");
@@ -50,12 +48,8 @@ export default function Game() {
     return () => clearInterval(interval);
   }, []);
 
-  // ============================
-  // SELECT MARBLE
-  // ============================
   function handleSelect(key) {
     const cell = board.find(([k]) => k === key)?.[1];
-
     if (cell !== playerColor) return;
 
     const clean = key.trim();
@@ -72,9 +66,6 @@ export default function Game() {
     setSelected([...selected, clean]);
   }
 
-  // ============================
-  // SEND MOVE
-  // ============================
   async function handleMove(direction) {
     if (!selected?.length) return;
 
@@ -112,24 +103,25 @@ export default function Game() {
     setSelected(null);
   }
 
-  // ============================
-  // RENDER
-  // ============================
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Joueur courant : {currentPlayer}</h2>
-      <h3>Ta couleur : {playerColor}</h3>
+    <div className="game-container">
 
-      <h3>Score</h3>
-      <p>
-        Joueur noir ({player1Id}) : {scoreP1}
-        <br />
-        Joueur blanc ({player2Id}) : {scoreP2}
-      </p>
+      <div className="game-info">
+        <h2>Joueur courant : {currentPlayer}</h2>
+        <h3>Ta couleur : {playerColor}</h3>
 
-      {selected && currentPlayer === userId && (
-        <Direction onMove={handleMove} />
-      )}
+        <div className="game-score">
+          <strong>Score</strong><br />
+          Noir ({player1Id}) : {scoreP1}<br />
+          Blanc ({player2Id}) : {scoreP2}
+        </div>
+      </div>
+
+      {/* Flèches toujours visibles */}
+      <Direction
+        onMove={handleMove}
+        disabled={currentPlayer !== userId || !selected}
+      />
 
       <HexBoard
         board={board}
