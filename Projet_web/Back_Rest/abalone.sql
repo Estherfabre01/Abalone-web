@@ -3,6 +3,7 @@ PRAGMA foreign_keys = OFF;
 -- ============================
 -- DROP TABLES (ordre important)
 -- ============================
+DROP TABLE IF EXISTS game_score;
 DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS moves;
@@ -30,16 +31,16 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE TABLE games (
     id TEXT PRIMARY KEY,
 
-    player1_id TEXT NOT NULL,   -- joueur noir
-    player2_id TEXT,            -- joueur blanc
+    player1_id TEXT NOT NULL,
+    player2_id TEXT,
 
     status TEXT NOT NULL CHECK(status IN ('waiting', 'in_progress', 'finished'))
         DEFAULT 'waiting',
 
-    winner_id TEXT,             -- gagnant éventuel
-    current_player TEXT,        -- joueur dont c'est le tour (id user)
-    turn_number INTEGER NOT NULL DEFAULT 1,  -- numéro du tour
-    board TEXT NOT NULL,        -- plateau JSON directement dans games
+    winner_id TEXT,
+    current_player TEXT,
+    turn_number INTEGER NOT NULL DEFAULT 1,
+    board TEXT NOT NULL,
 
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
@@ -108,3 +109,20 @@ CREATE TABLE friend_requests (
 
 CREATE INDEX idx_friend_requests_sender ON friend_requests(sender_id);
 CREATE INDEX idx_friend_requests_receiver ON friend_requests(receiver_id);
+
+-- ============================
+-- TABLE : game_score
+-- ============================
+CREATE TABLE game_score (
+    id TEXT PRIMARY KEY,
+    game_id TEXT NOT NULL,
+
+    score_player1 INTEGER NOT NULL DEFAULT 0,
+    score_player2 INTEGER NOT NULL DEFAULT 0,
+
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_game_score_game ON game_score(game_id);

@@ -14,10 +14,12 @@ export function createGame(req, res) {
   }
 
   const gameId = crypto.randomUUID();
+  const scoreId = crypto.randomUUID();
 
   // Plateau initial (Map → Array)
   const initialBoard = Array.from(getInitialBoard());
 
+  // Création de la partie
   db.prepare(`
     INSERT INTO games (
       id,
@@ -33,12 +35,24 @@ export function createGame(req, res) {
     gameId,
     req.user.id,
     opponent_id,
-    req.user.id,                     // player1 commence
-    JSON.stringify(initialBoard)     // board valide
+    req.user.id,
+    JSON.stringify(initialBoard)
   );
+
+  // Création du score associé
+  db.prepare(`
+    INSERT INTO game_score (
+      id,
+      game_id,
+      score_player1,
+      score_player2
+    )
+    VALUES (?, ?, 0, 0)
+  `).run(scoreId, gameId);
 
   res.json({ id: gameId });
 }
+
 
 
 
@@ -49,9 +63,16 @@ export function createGame(req, res) {
 export function getGame(req, res) {
   const gameId = req.params.id;
 
-  // Charger la partie
+  // 1) Charger la partie
   const game = db.prepare(`
-    SELECT id, player1_id, player2_id, status, current_player, turn_number, board
+    SELECT 
+      id,
+      player1_id,
+      player2_id,
+      current_player,
+      turn_number,
+      board,
+      status
     FROM games
     WHERE id = ?
   `).get(gameId);
@@ -60,28 +81,38 @@ export function getGame(req, res) {
     return res.status(404).json({ error: "Game not found" });
   }
 
-  // Parser le plateau (toujours un JSON valide)
-  let parsedBoard;
-  try {
-    parsedBoard = JSON.parse(game.board);
-  } catch (err) {
-    return res.status(500).json({ error: "Invalid board format" });
-  }
+  // 2) Charger le score
+  const score = db.prepare(`
+    SELECT 
+      score_player1,
+      score_player2
+    FROM game_score
+    WHERE game_id = ?
+  `).get(gameId);
 
-  // Déterminer la couleur du joueur connecté
-  const playerColor =
-    req.user.id === game.player1_id ? "B" : "W";
+  // 3) Déterminer la couleur du joueur courant
+  const userId = req.user.id;
+  let playerColor = null;
 
-  // Réponse complète
+  if (userId === game.player1_id) playerColor = "B"; // Noir
+  if (userId === game.player2_id) playerColor = "W"; // Blanc
+
+  // 4) Réponse structurée
   res.json({
     id: game.id,
+    board: JSON.parse(game.board),
+    current_player: game.current_player,
+    player_color: playerColor,
+    turn_number: game.turn_number,
+    status: game.status,
+
+    // joueurs
     player1_id: game.player1_id,
     player2_id: game.player2_id,
-    status: game.status,
-    current_player: game.current_player,
-    turn_number: game.turn_number,
-    board: parsedBoard,
-    player_color: playerColor
+
+    // score
+    score_player1: score?.score_player1 ?? 0,
+    score_player2: score?.score_player2 ?? 0
   });
 }
 

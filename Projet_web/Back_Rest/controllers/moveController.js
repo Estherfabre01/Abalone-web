@@ -45,13 +45,32 @@ export function playMove(req, res) {
   // 4) Convertir Map → Array
   const newBoardArray = [...newBoardMap];
 
-  // 5) Calcul du prochain joueur
+  // 5) Mise à jour du score si poussée hors plateau
+  if (validation.reason === "Poussée hors plateau") {
+
+    const isPlayer1 = game.current_player === game.player1_id;
+
+    db.prepare(`
+      UPDATE game_score
+      SET 
+        score_player1 = score_player1 + ?,
+        score_player2 = score_player2 + ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE game_id = ?
+    `).run(
+      isPlayer1 ? 1 : 0,
+      isPlayer1 ? 0 : 1,
+      gameId
+    );
+  }
+
+  // 6) Calcul du prochain joueur
   const nextPlayer =
     game.current_player === game.player1_id
       ? game.player2_id
       : game.player1_id;
 
-  // 6) Sauvegarder dans games
+  // 7) Sauvegarder dans games
   db.prepare(`
     UPDATE games
     SET board = ?, current_player = ?, turn_number = turn_number + 1
@@ -62,7 +81,7 @@ export function playMove(req, res) {
     gameId
   );
 
-  // 7) Sauvegarder le coup (moves)
+  // 8) Sauvegarder le coup (moves)
   db.prepare(`
     INSERT INTO moves (id, game_id, player_id, from_positions, to_positions)
     VALUES (?, ?, ?, ?, ?)
@@ -74,7 +93,7 @@ export function playMove(req, res) {
     JSON.stringify(direction)
   );
 
-  // 8) Réponse au frontend
+  // 9) Réponse au frontend
   res.json({
     message: "Move played",
     board: Object.fromEntries(newBoardMap),
@@ -83,6 +102,7 @@ export function playMove(req, res) {
     reason: validation.reason
   });
 }
+
 
 
 

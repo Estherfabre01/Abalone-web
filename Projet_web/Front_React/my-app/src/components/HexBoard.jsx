@@ -22,7 +22,7 @@ export default function HexBoard({ board, selectedKey, onSelect }) {
 
       return { key, value, x, y };
     })
-    .filter(Boolean); // 🔥 enlève les null
+    .filter(Boolean); // enlève les null
 
   if (pixelCoords.length === 0) return null;
 
